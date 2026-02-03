@@ -1,0 +1,25 @@
+# Dependencias
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+.pnpm-debug.log*
+
+# Next.js build
+frontend/.next/
+frontend/out/
+
+# Variables de entorno (Seguridad)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+frontend/.env*
+backend/.env*
+
+# Docker
+.docker/
+
+# Otros
+.DS_Store
+*.log
