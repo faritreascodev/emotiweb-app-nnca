@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EmotiWeb - Aprendiendo Emociones</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            keyframes: {
+              bounce: {
+                "0%, 100%": {
+                  transform: "translateY(-5%)",
+                  animationTimingFunction: "cubic-bezier(0.8, 0, 1, 1)",
+                },
+                "50%": {
+                  transform: "translateY(0)",
+                  animationTimingFunction: "cubic-bezier(0, 0, 0.2, 1)",
+                },
+              },
+              fall: {
+                "0%": {
+                  transform: "translateY(-100vh) rotate(0deg)",
+                  opacity: "1",
+                },
+                "100%": {
+                  transform: "translateY(100vh) rotate(360deg)",
+                  opacity: "0",
+                },
+              },
+              shake: {
+                "0%, 100%": { transform: "translateX(0)" },
+                "25%": { transform: "translateX(-10px)" },
+                "75%": { transform: "translateX(10px)" },
+              },
+              ping: {
+                "0%": {
+                  transform: "scale(1)",
+                  opacity: "1",
+                },
+                "75%, 100%": {
+                  transform: "scale(2)",
+                  opacity: "0",
+                },
+              },
+            },
+            animation: {
+              bounce: "bounce 1s infinite",
+              fall: "fall 3s linear forwards",
+              shake: "shake 0.5s ease-in-out",
+              ping: "ping 1s cubic-bezier(0, 0, 0.2, 1) infinite",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      @keyframes bounce {
+        0%,
+        100% {
+          transform: translateY(-5%);
+          animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+        }
+        50% {
+          transform: translateY(0);
+          animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+        }
+      }
+
+      @keyframes fall {
+        0% {
+          transform: translateY(-100vh) rotate(0deg);
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(100vh) rotate(360deg);
+          opacity: 0;
+        }
+      }
+
+      @keyframes shake {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        25% {
+          transform: translateX(-10px);
+        }
+        75% {
+          transform: translateX(10px);
+        }
+      }
+
+      @keyframes ping {
+        0% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        75%,
+        100% {
+          transform: scale(2);
+          opacity: 0;
+        }
+      }
+
+      .animate-bounce {
+        animation: bounce 1s infinite;
+      }
+
+      .animate-fall {
+        animation: fall 3s linear forwards;
+      }
+
+      .animate-shake {
+        animation: shake 0.5s ease-in-out;
+      }
+
+      .animate-ping {
+        animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

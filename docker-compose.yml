@@ -6,15 +6,14 @@ services:
     environment:
       POSTGRES_DB: emotiweb_db
       POSTGRES_USER: emotiweb_user
-      POSTGRES_PASSWORD: emotiweb_secure_pass_2026
-      POSTGRES_INITDB_ARGS: "-E UTF8 --locale=es_EC.UTF-8"
+      POSTGRES_PASSWORD: emotiweb_pass_2026
     ports:
-      - "5433:5432"
+      - '5433:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./backend/database/init.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
+      - ./backend/database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U emotiweb_user -d emotiweb_db"]
+      test: ['CMD-SHELL', 'pg_isready -U emotiweb_user -d emotiweb_db']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -25,55 +24,45 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-      target: production
     container_name: emotiweb-backend
     restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
-    env_file:
-      - ./backend/.env.docker
+    environment:
+      PORT: 3001
+      NODE_ENV: production
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: emotiweb_db
+      DB_USER: emotiweb_user
+      DB_PASSWORD: emotiweb_pass_2026
+      JWT_SECRET: emotiweb_jwt_secret_2026
+      JWT_REFRESH_SECRET: emotiweb_refresh_secret_2026
+      CORS_ORIGIN: http://localhost:3000
+      FRONTEND_URL: http://localhost:3000
     ports:
-      - "3001:3001"
+      - '3001:3001'
     volumes:
       - ./backend/logs:/app/logs
     networks:
       - emotiweb-network
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "wget",
-          "--no-verbose",
-          "--tries=1",
-          "--spider",
-          "http://localhost:3001/health",
-        ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_API_URL: http://localhost:3001/api
     container_name: emotiweb-frontend
     restart: unless-stopped
     depends_on:
-      backend:
-        condition: service_healthy
-    environment:
-      NEXT_PUBLIC_API_URL: http://localhost:3001/api
+      - backend
     ports:
-      - "3000:3000"
+      - '3000:80'
     networks:
       - emotiweb-network
 
 volumes:
   postgres_data:
-    driver: local
 
 networks:
   emotiweb-network:
