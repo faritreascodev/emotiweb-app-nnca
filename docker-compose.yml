@@ -1,19 +1,21 @@
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: emotiweb-postgres
+  db:
+    image: mysql:8.0
+    container_name: emotiweb-mysql
     restart: unless-stopped
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     environment:
-      POSTGRES_DB: emotiweb_db
-      POSTGRES_USER: emotiweb_user
-      POSTGRES_PASSWORD: emotiweb_pass_2026
+      MYSQL_DATABASE: emotiweb_db
+      MYSQL_USER: emotiweb_user
+      MYSQL_PASSWORD: emotiweb_pass_2026
+      MYSQL_ROOT_PASSWORD: root_pass_2026
     ports:
-      - '5433:5432'
+      - '3306:3306'
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./backend/database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - mysql_data:/var/lib/mysql
+      - ./backend/database/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U emotiweb_user -d emotiweb_db']
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -27,13 +29,13 @@ services:
     container_name: emotiweb-backend
     restart: unless-stopped
     depends_on:
-      postgres:
+      db:
         condition: service_healthy
     environment:
       PORT: 3001
       NODE_ENV: production
-      DB_HOST: postgres
-      DB_PORT: 5432
+      DB_HOST: db
+      DB_PORT: 3306
       DB_NAME: emotiweb_db
       DB_USER: emotiweb_user
       DB_PASSWORD: emotiweb_pass_2026
@@ -62,7 +64,7 @@ services:
       - emotiweb-network
 
 volumes:
-  postgres_data:
+  mysql_data:
 
 networks:
   emotiweb-network:

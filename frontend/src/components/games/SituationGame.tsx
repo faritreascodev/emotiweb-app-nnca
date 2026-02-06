@@ -1,29 +1,29 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useGame } from '../../context/GameContext';
 import { apiService } from '../../api/apiService';
 import { Button } from '../common/Button';
 import { useSound } from '../../hooks/useSound';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle, XCircle } from 'lucide-react';
+import { CheckCircle, XCircle, Star, Volume2 } from 'lucide-react';
 
 interface Question {
     id: number;
     texto: string;
-    imagen: string; // Emoji
+    imagen: string;
     emocion_correcta: string;
 }
 
 const EMOTIONS = {
-    joy: { name: 'Alegría', emoji: '😊', color: 'bg-yellow-400', text: 'text-yellow-900' },
-    sadness: { name: 'Tristeza', emoji: '😢', color: 'bg-blue-400', text: 'text-blue-900' },
-    anger: { name: 'Enojo', emoji: '😠', color: 'bg-red-400', text: 'text-red-900' },
-    fear: { name: 'Miedo', emoji: '😨', color: 'bg-purple-400', text: 'text-purple-900' },
-    surprise: { name: 'Sorpresa', emoji: '😲', color: 'bg-orange-400', text: 'text-orange-900' },
+    joy: { name: 'Alegría', emoji: '😊', color: 'bg-[#FFD93D]', hover: 'hover:bg-[#FFC93C]', border: 'border-[#E6B300]' },
+    sadness: { name: 'Tristeza', emoji: '😢', color: 'bg-[#6B9FFF]', hover: 'hover:bg-[#5A8EE6]', border: 'border-[#4A7AC2]' },
+    anger: { name: 'Enojo', emoji: '😠', color: 'bg-[#FF6B6B]', hover: 'hover:bg-[#EE5A5A]', border: 'border-[#D94E4E]' },
+    fear: { name: 'Miedo', emoji: '😨', color: 'bg-[#A78BFA]', hover: 'hover:bg-[#9067F9]', border: 'border-[#7C3AED]' },
+    surprise: { name: 'Sorpresa', emoji: '😲', color: 'bg-[#FF9F43]', hover: 'hover:bg-[#EF8E33]', border: 'border-[#D97706]' },
 };
 
 export function SituationGame() {
-    const { currentGameId, finishSession } = useGame();
+    const { finishSession } = useGame();
     const { speak, playEffect } = useSound();
     const navigate = useNavigate();
 
@@ -32,28 +32,32 @@ export function SituationGame() {
     const [score, setScore] = useState(0);
     const [gameState, setGameState] = useState<'loading' | 'playing' | 'feedback' | 'finished'>('loading');
     const [isCorrect, setIsCorrect] = useState(false);
+    const [selectedId, setSelectedId] = useState<string | null>(null);
 
-    useEffect(() => {
-        const loadGame = async () => {
-            if (!currentGameId) return;
-            try {
-                const data = await apiService.getGameQuestions(currentGameId);
-                // Shuffle or just take them
+    const loadGame = useCallback(async () => {
+        try {
+            const data = await apiService.getGameQuestions('situation');
+            if (data && data.length > 0) {
                 setQuestions(data);
                 setGameState('playing');
-
-                // Speak first question after short delay
-                setTimeout(() => speak(data[0].texto), 1000);
-            } catch (error) {
-                console.error("Error loading questions", error);
+                setTimeout(() => speak(data[0].texto), 800);
+            } else {
+                setGameState('finished');
             }
-        };
+        } catch (error) {
+            console.error("Error loading questions", error);
+            navigate('/');
+        }
+    }, [speak, navigate]);
+
+    useEffect(() => {
         loadGame();
-    }, [currentGameId]); // eslint-disable-line
+    }, [loadGame]);
 
     const handleAnswer = (emotionId: string) => {
         if (gameState !== 'playing') return;
 
+        setSelectedId(emotionId);
         const currentQ = questions[currentIndex];
         const correct = emotionId === currentQ.emocion_correcta;
 
@@ -69,111 +73,160 @@ export function SituationGame() {
 
         setTimeout(() => {
             if (currentIndex < questions.length - 1) {
-                setCurrentIndex(prev => prev + 1);
+                const next = currentIndex + 1;
+                setCurrentIndex(next);
                 setGameState('playing');
-                speak(questions[currentIndex + 1].texto);
+                setSelectedId(null);
+                speak(questions[next].texto);
             } else {
                 handleFinish();
             }
-        }, 2000);
+        }, 1800);
     };
 
     const handleFinish = async () => {
         setGameState('finished');
         playEffect('win');
-        await finishSession(questions.length, score + (isCorrect ? 1 : 0)); // Add last one if correct? No, score is updated already
-        // Wait for user interaction to leave
+        await finishSession(questions.length, score + (isCorrect ? 1 : 0));
     };
 
-    if (gameState === 'loading') return <div className="text-center text-white p-10">Cargando Situaciones...</div>;
+    if (gameState === 'loading') {
+        return (
+            <div className="flex flex-col items-center justify-center h-[500px] text-white">
+                <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}>
+                    <Star size={64} className="text-yellow-400 fill-yellow-400" />
+                </motion.div>
+                <p className="mt-4 text-2xl font-display">¡Buscando aventuras!</p>
+            </div>
+        );
+    }
 
     if (gameState === 'finished') {
         return (
-            <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                className="flex flex-col items-center justify-center h-full p-8 text-center"
-            >
-                <div className="text-8xl mb-6 animate-bounce">🏆</div>
-                <h2 className="text-4xl font-bold text-white mb-4">¡Juego Completado!</h2>
-                <p className="text-2xl text-purple-200 mb-8">
-                    Conseguiste {score} de {questions.length} estrellas
-                </p>
-                <div className="flex gap-2 mb-8">
-                    {[...Array(questions.length)].map((_, i) => (
-                        <StarIcon key={i} filled={i < score} />
-                    ))}
-                </div>
-                <Button onClick={() => navigate('/')} size="lg">Volver al Inicio</Button>
-            </motion.div>
+            <div className="flex flex-col items-center justify-center min-h-[500px] p-8">
+                <motion.div
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="bg-white/95 p-12 rounded-[50px] shadow-2xl text-center border-8 border-yellow-400 max-w-lg"
+                >
+                    <div className="text-9xl mb-6">🏆</div>
+                    <h2 className="text-5xl font-display font-black text-indigo-900 mb-4">¡GENIAL!</h2>
+                    <p className="text-2xl text-indigo-600 mb-8 font-bold">
+                        Ganaste {score} Estrellas
+                    </p>
+                    <div className="flex justify-center gap-2 mb-10">
+                        {[...Array(5)].map((_, i) => (
+                            <motion.div
+                                key={i}
+                                initial={{ scale: 0 }}
+                                animate={{ scale: i < score ? 1.2 : 1 }}
+                                transition={{ delay: i * 0.1 }}
+                            >
+                                <StarIcon key={i} filled={i < score} />
+                            </motion.div>
+                        ))}
+                    </div>
+                    <Button onClick={() => navigate('/')} size="lg" className="w-full text-xl h-16 rounded-3xl bg-indigo-600 hover:bg-indigo-700 shadow-xl">
+                        ¡Ir a más Juegos!
+                    </Button>
+                </motion.div>
+            </div>
         );
     }
 
     const currentQ = questions[currentIndex];
 
     return (
-        <div className="h-full flex flex-col items-center justify-between p-6">
-            {/* Progress */}
-            <div className="w-full h-4 bg-white/10 rounded-full mb-8 overflow-hidden">
-                <div
-                    className="h-full bg-green-500 transition-all duration-500"
-                    style={{ width: `${((currentIndex) / questions.length) * 100}%` }}
-                />
+        <div className="flex flex-col items-center w-full min-h-[550px] p-4 relative overflow-hidden">
+            <div className="w-full flex justify-between items-center mb-8 px-4">
+                <div className="flex items-center gap-3">
+                    <div className="bg-yellow-400 p-2 rounded-2xl shadow-lg border-b-4 border-yellow-600">
+                        <Star className="text-white fill-white" size={24} />
+                    </div>
+                    <span className="text-2xl font-black text-white drop-shadow-md">{score}</span>
+                </div>
+
+                <div className="flex gap-2">
+                    {questions.map((_, i) => (
+                        <div
+                            key={i}
+                            className={`h-4 rounded-full transition-all duration-300 ${i === currentIndex ? 'w-10 bg-yellow-400' : i < currentIndex ? 'w-4 bg-green-400' : 'w-4 bg-white/20'}`}
+                        />
+                    ))}
+                </div>
             </div>
 
             <AnimatePresence mode="wait">
                 {gameState === 'feedback' ? (
                     <motion.div
                         key="feedback"
-                        initial={{ opacity: 0, scale: 0.5 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.5 }}
+                        initial={{ opacity: 0, scale: 0.2, rotate: -20 }}
+                        animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                        exit={{ opacity: 0, scale: 1.5 }}
                         className="flex flex-col items-center justify-center flex-grow"
                     >
                         {isCorrect ? (
-                            <>
-                                <CheckCircle size={120} className="text-green-400 mb-4" />
-                                <h2 className="text-4xl text-white font-bold">¡Correcto!</h2>
-                            </>
+                            <div className="bg-green-400 p-10 rounded-[60px] border-b-8 border-green-600 shadow-2xl">
+                                <CheckCircle size={150} className="text-white mb-4" />
+                                <h2 className="text-6xl text-white font-black drop-shadow-md italic uppercase">¡Súper!</h2>
+                            </div>
                         ) : (
-                            <>
-                                <XCircle size={120} className="text-red-400 mb-4" />
-                                <h2 className="text-4xl text-white font-bold">¡Inténtalo de nuevo!</h2>
-                            </>
+                            <div className="bg-red-400 p-10 rounded-[60px] border-b-8 border-red-600 shadow-2xl">
+                                <XCircle size={150} className="text-white mb-4" />
+                                <h2 className="text-4xl text-white font-black drop-shadow-md italic uppercase">¡Casi casi!</h2>
+                            </div>
                         )}
                     </motion.div>
                 ) : (
                     <motion.div
                         key="question"
-                        initial={{ opacity: 0, x: 50 }}
+                        initial={{ opacity: 0, x: 100 }}
                         animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -50 }}
-                        className="flex flex-col items-center w-full max-w-4xl"
+                        exit={{ opacity: 0, x: -100 }}
+                        className="flex flex-col items-center w-full max-w-4xl flex-grow justify-center"
                     >
-                        <div className="text-8xl mb-6 filter drop-shadow-lg">{currentQ.imagen}</div>
+                        <div className="bg-white p-2 rounded-[50px] shadow-2xl mb-10 w-full relative">
+                            <div className="bg-indigo-50 p-8 rounded-[45px] border-4 border-dashed border-indigo-200 flex flex-col items-center">
+                                <motion.div
+                                    animate={{ y: [0, -10, 0] }}
+                                    transition={{ duration: 2, repeat: Infinity }}
+                                    className="text-9xl mb-6 drop-shadow-xl"
+                                >
+                                    {currentQ.imagen}
+                                </motion.div>
 
-                        <h2
-                            className="text-3xl md:text-4xl font-display font-bold text-white text-center mb-8 cursor-pointer hover:text-yellow-300 transition-colors"
-                            onClick={() => speak(currentQ.texto)}
-                        >
-                            "{currentQ.texto}" <span className="text-lg opacity-50 ml-2">🔊</span>
-                        </h2>
+                                <div className="space-y-4 text-center">
+                                    <h2 className="text-3xl md:text-5xl font-black text-indigo-900 leading-tight">
+                                        {currentQ.texto}
+                                    </h2>
+                                    <motion.button
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        onClick={() => speak(currentQ.texto)}
+                                        className="bg-indigo-600 hover:bg-indigo-700 text-white p-4 rounded-3xl flex items-center gap-3 font-bold mx-auto shadow-lg"
+                                    >
+                                        <Volume2 size={32} /> Escuchar de nuevo
+                                    </motion.button>
+                                </div>
+                            </div>
+                        </div>
 
-                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 w-full">
+                        <div className="grid grid-cols-2 md:grid-cols-5 gap-6 w-full px-2">
                             {Object.entries(EMOTIONS).map(([key, config]) => (
                                 <motion.button
                                     key={key}
-                                    whileHover={{ scale: 1.05, y: -5 }}
-                                    whileTap={{ scale: 0.95 }}
+                                    whileHover={{ scale: 1.1, y: -10 }}
+                                    whileTap={{ scale: 0.9 }}
                                     onClick={() => handleAnswer(key)}
                                     className={`
-                    flex flex-col items-center justify-center p-4 rounded-2xl
-                    ${config.color} shadow-lg border-b-4 border-black/20
-                    transition-all
-                  `}
+                                        flex flex-col items-center justify-center p-6 rounded-[35px]
+                                        ${config.color} ${config.hover} border-b-8 ${config.border}
+                                        shadow-xl transition-all h-full min-h-[160px]
+                                        ${selectedId === key ? 'ring-8 ring-white' : ''}
+                                    `}
                                 >
-                                    <span className="text-4xl mb-2">{config.emoji}</span>
-                                    <span className={`font-bold ${config.text}`}>{config.name}</span>
+                                    <span className="text-6xl mb-3 filter drop-shadow-lg">{config.emoji}</span>
+                                    <span className={`font-black text-xl text-indigo-950`}>{config.name}</span>
                                 </motion.button>
                             ))}
                         </div>
@@ -186,14 +239,9 @@ export function SituationGame() {
 
 function StarIcon({ filled }: { filled: boolean }) {
     return (
-        <svg
-            className={`w-8 h-8 ${filled ? 'text-yellow-400 fill-current' : 'text-gray-600'}`}
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth="2"
-            fill="none"
-        >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-        </svg>
+        <Star
+            size={48}
+            className={`${filled ? 'text-yellow-400 fill-yellow-400 drop-shadow-lg' : 'text-indigo-100 fill-indigo-100'}`}
+        />
     );
 }

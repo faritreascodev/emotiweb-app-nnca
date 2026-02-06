@@ -9,16 +9,17 @@ class UserRepository {
 
         const sql = `
       INSERT INTO usuarios (nombre, email, password_hash, tipo, fecha_nacimiento, avatar)
-      VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING id, nombre, email, tipo, fecha_nacimiento, avatar, fecha_creacion, activo
+      VALUES (?, ?, ?, ?, ?, ?)
     `;
 
         const result = await query(sql, [nombre, email, passwordHash, tipo, fechaNacimiento, avatar]);
-        return new User(result.rows[0]);
+        const id = result.rows.insertId;
+
+        return this.findById(id);
     }
 
     async findById(id) {
-        const sql = 'SELECT * FROM usuarios WHERE id = $1 AND activo = true';
+        const sql = 'SELECT * FROM usuarios WHERE id = ? AND activo = true';
         const result = await query(sql, [id]);
 
         if (result.rows.length === 0) return null;
@@ -26,7 +27,7 @@ class UserRepository {
     }
 
     async findByEmail(email) {
-        const sql = 'SELECT * FROM usuarios WHERE email = $1 AND activo = true';
+        const sql = 'SELECT * FROM usuarios WHERE email = ? AND activo = true';
         const result = await query(sql, [email]);
 
         if (result.rows.length === 0) return null;
@@ -44,7 +45,7 @@ class UserRepository {
     }
 
     async updateLastSession(userId) {
-        const sql = 'UPDATE usuarios SET ultima_sesion = CURRENT_TIMESTAMP WHERE id = $1';
+        const sql = 'UPDATE usuarios SET ultima_sesion = CURRENT_TIMESTAMP WHERE id = ?';
         await query(sql, [userId]);
     }
 

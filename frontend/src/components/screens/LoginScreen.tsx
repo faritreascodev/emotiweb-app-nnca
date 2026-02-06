@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+
 import { useGame } from '../../context/GameContext';
 import { Button } from '../common/Button';
 import { motion } from 'framer-motion';
@@ -6,6 +8,8 @@ import { Sparkles, Heart } from 'lucide-react';
 
 export function LoginScreen() {
     const { login } = useGame();
+    const navigate = useNavigate();
+
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -17,9 +21,9 @@ export function LoginScreen() {
         setError('');
         try {
             await login(email, password);
-            // Navigation is handled by App.tsx redirection or here
-            // But typically state change triggers App re-render
+            navigate('/');
         } catch (err: any) {
+
             setError('Credenciales incorrectas o error de conexión');
         } finally {
             setLoading(false);
@@ -105,7 +109,7 @@ export function LoginScreen() {
 
                 <div className="mt-8 pt-6 border-t border-white/10 text-center">
                     <p className="text-sm text-purple-200">
-                        ¿No tienes cuenta? <span className="text-yellow-400 font-bold cursor-pointer hover:underline">Pide ayuda a tu profesor</span>
+                        ¿No tienes cuenta? <Link to="/register" className="text-yellow-400 font-bold cursor-pointer hover:underline">Regístrate gratis</Link>
                     </p>
                 </div>
             </motion.div>

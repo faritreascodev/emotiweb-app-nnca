@@ -6,7 +6,7 @@ export interface User {
     id: number;
     nombre: string;
     email: string;
-    tipo: 'estudiante' | 'padre' | 'educador';
+    tipo: 'estudiante' | 'padre' | 'admin';
     avatar: string;
 }
 

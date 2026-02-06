@@ -19,8 +19,8 @@ class User {
         return this.tipo === 'padre';
     }
 
-    esEducador() {
-        return this.tipo === 'educador';
+    esAdmin() {
+        return this.tipo === 'admin';
     }
 
     calcularEdad() {
@@ -41,6 +41,7 @@ class User {
             nombre: this.nombre,
             email: this.email,
             tipo: this.tipo,
+            esAdmin: this.esAdmin(),
             fechaNacimiento: this.fechaNacimiento,
             edad: this.calcularEdad(),
             avatar: this.avatar,

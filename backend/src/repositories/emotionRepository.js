@@ -9,7 +9,7 @@ class EmotionRepository {
     }
 
     async findById(id) {
-        const sql = 'SELECT * FROM emociones WHERE id = $1';
+        const sql = 'SELECT * FROM emociones WHERE id = ?';
         const result = await query(sql, [id]);
         return result.rows[0] || null;
     }

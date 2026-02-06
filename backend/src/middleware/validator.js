@@ -26,7 +26,7 @@ const schemas = {
         nombre: Joi.string().min(3).max(100).required(),
         email: Joi.string().email().required(),
         password: Joi.string().min(6).required(),
-        tipo: Joi.string().valid('estudiante', 'padre', 'educador').required(),
+        tipo: Joi.string().valid('estudiante', 'padre', 'admin').required(),
         fechaNacimiento: Joi.date().optional(),
         avatar: Joi.string().optional()
     }),

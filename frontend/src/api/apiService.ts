@@ -47,6 +47,14 @@ class ApiService {
         return response.data;
     }
 
+    async register(data: any) {
+        const response = await this.request('/auth/register', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+        return response.data;
+    }
+
     async getProfile() {
         const response = await this.request('/auth/profile');
         return response.data;

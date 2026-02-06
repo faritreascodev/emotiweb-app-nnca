@@ -9,8 +9,8 @@ class ParentController {
         try {
             const { childId } = req.params;
 
-            if (req.user.tipo !== 'padre' && req.user.tipo !== 'educador') {
-                return ResponseHelper.forbidden(res, 'Solo padres y educadores pueden ver progreso de estudiantes');
+            if (req.user.tipo !== 'padre' && req.user.tipo !== 'admin') {
+                return ResponseHelper.forbidden(res, 'Solo padres y admin pueden ver progreso de estudiantes');
             }
 
             const child = await userRepository.findById(childId);
@@ -39,8 +39,8 @@ class ParentController {
 
     async getAllStudents(req, res) {
         try {
-            if (req.user.tipo !== 'padre' && req.user.tipo !== 'educador') {
-                return ResponseHelper.forbidden(res, 'Solo padres y educadores pueden ver estudiantes');
+            if (req.user.tipo !== 'padre' && req.user.tipo !== 'admin') {
+                return ResponseHelper.forbidden(res, 'Solo padres y admin pueden ver estudiantes');
             }
 
             const users = await userRepository.findAll();

@@ -7,7 +7,7 @@ const { authenticateToken, requireRole } = require('../middleware/auth');
  * @swagger
  * /api/parent/students:
  *   get:
- *     summary: Obtener todos los estudiantes (solo padres/educadores)
+ *     summary: Obtener todos los estudiantes (solo padres/admin)
  *     tags: [Parent]
  *     security:
  *       - bearerAuth: []
@@ -15,7 +15,7 @@ const { authenticateToken, requireRole } = require('../middleware/auth');
  *       200:
  *         description: Lista de estudiantes con progreso
  */
-router.get('/students', authenticateToken, requireRole('padre', 'educador'), parentController.getAllStudents);
+router.get('/students', authenticateToken, requireRole('padre', 'admin'), parentController.getAllStudents);
 
 /**
  * @swagger
@@ -35,6 +35,6 @@ router.get('/students', authenticateToken, requireRole('padre', 'educador'), par
  *       200:
  *         description: Progreso del estudiante
  */
-router.get('/child/:childId', authenticateToken, requireRole('padre', 'educador'), parentController.getChildProgress);
+router.get('/child/:childId', authenticateToken, requireRole('padre', 'admin'), parentController.getChildProgress);
 
 module.exports = router;

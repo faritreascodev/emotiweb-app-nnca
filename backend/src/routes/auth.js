@@ -30,7 +30,12 @@ const { authenticateToken } = require('../middleware/auth');
  *                 type: string
  *               tipo:
  *                 type: string
- *                 enum: [estudiante, padre, educador]
+ *                 enum: [estudiante, padre, admin]
+ *               fechaNacimiento:
+ *                 type: string
+ *                 format: date
+ *               avatar:
+ *                 type: string
  *     responses:
  *       201:
  *         description: Usuario registrado exitosamente

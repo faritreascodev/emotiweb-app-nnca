@@ -1,7 +1,7 @@
 const USER_TYPES = {
     ESTUDIANTE: 'estudiante',
     PADRE: 'padre',
-    EDUCADOR: 'educador'
+    ADMIN: 'admin'
 };
 
 const GAME_TYPES = {
