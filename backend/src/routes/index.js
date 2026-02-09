@@ -6,12 +6,14 @@ const gamesRoutes = require('./games');
 const sessionsRoutes = require('./sessions');
 const progressRoutes = require('./progress');
 const parentRoutes = require('./parent');
+const adminRoutes = require('./admin');
 
 router.use('/auth', authRoutes);
 router.use('/games', gamesRoutes);
 router.use('/sessions', sessionsRoutes);
 router.use('/progress', progressRoutes);
 router.use('/parent', parentRoutes);
+router.use('/admin', adminRoutes);
 
 router.get('/', (req, res) => {
     res.json({
@@ -21,7 +23,8 @@ router.get('/', (req, res) => {
             games: '/api/games',
             sessions: '/api/sessions',
             progress: '/api/progress',
-            parent: '/api/parent'
+            parent: '/api/parent',
+            admin: '/api/admin'
         }
     });
 });

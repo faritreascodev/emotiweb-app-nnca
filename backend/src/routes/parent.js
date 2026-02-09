@@ -37,4 +37,63 @@ router.get('/students', authenticateToken, requireRole('padre', 'admin'), parent
  */
 router.get('/child/:childId', authenticateToken, requireRole('padre', 'admin'), parentController.getChildProgress);
 
+/**
+ * @swagger
+ * /api/parent/my-children:
+ *   get:
+ *     summary: Obtener mis hijos vinculados (padres) o todos los estudiantes (admin)
+ *     tags: [Parent]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de hijos con progreso
+ */
+router.get('/my-children', authenticateToken, requireRole('padre', 'admin'), parentController.getMyChildren);
+
+/**
+ * @swagger
+ * /api/parent/link-child:
+ *   post:
+ *     summary: Vincular un hijo (solo padres)
+ *     tags: [Parent]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - hijoId
+ *             properties:
+ *               hijoId:
+ *                 type: integer
+ *     responses:
+ *       201:
+ *         description: Hijo vinculado exitosamente
+ */
+router.post('/link-child', authenticateToken, requireRole('padre'), parentController.linkChild);
+
+/**
+ * @swagger
+ * /api/parent/unlink-child/{hijoId}:
+ *   delete:
+ *     summary: Desvincular un hijo (solo padres)
+ *     tags: [Parent]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: hijoId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Hijo desvinculado exitosamente
+ */
+router.delete('/unlink-child/:hijoId', authenticateToken, requireRole('padre'), parentController.unlinkChild);
+
 module.exports = router;

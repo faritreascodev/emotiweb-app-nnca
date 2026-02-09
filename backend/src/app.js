@@ -31,7 +31,7 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-app.use('/api', rateLimiter.api, routes);
+app.use('/api', routes);
 
 app.get('/', (req, res) => {
     res.json({

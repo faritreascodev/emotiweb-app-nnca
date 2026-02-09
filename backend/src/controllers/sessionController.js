@@ -1,5 +1,7 @@
 const sessionRepository = require('../repositories/sessionRepository');
 const gameRepository = require('../repositories/gameRepository');
+const answerRepository = require('../repositories/answerRepository');
+const achievementRepository = require('../repositories/achievementRepository');
 const ResponseHelper = require('../utils/responseHelper');
 
 class SessionController {
@@ -37,7 +39,15 @@ class SessionController {
                 return ResponseHelper.forbidden(res, 'No tienes acceso a esta sesión');
             }
 
-            return ResponseHelper.success(res, session);
+            // Incluir respuestas si están disponibles
+            const answers = await answerRepository.findBySessionId(id);
+            const stats = await answerRepository.getSessionStats(id);
+
+            return ResponseHelper.success(res, {
+                ...session,
+                respuestas: answers,
+                estadisticas: stats
+            });
 
         } catch (error) {
             console.error('Error en getSession:', error);
@@ -89,6 +99,42 @@ class SessionController {
         }
     }
 
+    async recordAnswer(req, res) {
+        try {
+            const { id } = req.params;
+            const { situacionId, emocionSeleccionada, emocionCorrecta, tiempoRespuesta, numeroRonda } = req.body;
+
+            const session = await sessionRepository.findById(id);
+            if (!session) {
+                return ResponseHelper.notFound(res, 'Sesión');
+            }
+
+            if (session.usuario_id !== req.user.id) {
+                return ResponseHelper.forbidden(res, 'No tienes acceso a esta sesión');
+            }
+
+            const esCorrecta = emocionSeleccionada === emocionCorrecta;
+
+            await answerRepository.create(
+                id,
+                situacionId,
+                emocionSeleccionada,
+                emocionCorrecta,
+                esCorrecta,
+                tiempoRespuesta,
+                numeroRonda
+            );
+
+            return ResponseHelper.success(res, {
+                es_correcta: esCorrecta
+            }, 'Respuesta registrada');
+
+        } catch (error) {
+            console.error('Error en recordAnswer:', error);
+            return ResponseHelper.error(res, 'Error al registrar respuesta');
+        }
+    }
+
     async finishSession(req, res) {
         try {
             const { id } = req.params;
@@ -112,7 +158,13 @@ class SessionController {
                 completada: true
             });
 
-            return ResponseHelper.success(res, updated, 'Sesión finalizada');
+            // Verificar y otorgar logros
+            const newAchievements = await achievementRepository.checkAndGrantAchievements(req.user.id);
+
+            return ResponseHelper.success(res, {
+                sesion: updated,
+                nuevos_logros: newAchievements
+            }, 'Sesión finalizada');
 
         } catch (error) {
             console.error('Error en finishSession:', error);
@@ -122,3 +174,4 @@ class SessionController {
 }
 
 module.exports = new SessionController();
+

@@ -103,4 +103,46 @@ router.put('/:id', authenticateToken, sessionController.updateSession);
  */
 router.post('/:id/finish', authenticateToken, sessionController.finishSession);
 
+/**
+ * @swagger
+ * /api/sessions/{id}/answer:
+ *   post:
+ *     summary: Registrar respuesta individual en una sesión
+ *     tags: [Sessions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - situacionId
+ *               - emocionSeleccionada
+ *               - emocionCorrecta
+ *               - numeroRonda
+ *             properties:
+ *               situacionId:
+ *                 type: integer
+ *               emocionSeleccionada:
+ *                 type: string
+ *               emocionCorrecta:
+ *                 type: string
+ *               tiempoRespuesta:
+ *                 type: integer
+ *               numeroRonda:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Respuesta registrada
+ */
+router.post('/:id/answer', authenticateToken, sessionController.recordAnswer);
+
 module.exports = router;

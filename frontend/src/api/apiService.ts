@@ -67,7 +67,7 @@ class ApiService {
 
     async getGameQuestions(gameId: string) {
         const response = await this.request(`/games/${gameId}/questions`);
-        return response.data;
+        return response.data.preguntas;
     }
 
     async startSession(juegoId: string) {
@@ -103,6 +103,68 @@ class ApiService {
 
     async getChildProgress(childId: number) {
         const response = await this.request(`/parent/child/${childId}`);
+        return response.data;
+    }
+
+    async getMyChildren() {
+        const response = await this.request('/parent/my-children');
+        return response.data;
+    }
+
+    async linkChild(hijoId: number) {
+        const response = await this.request('/parent/link-child', {
+            method: 'POST',
+            body: JSON.stringify({ hijoId }),
+        });
+        return response.data;
+    }
+
+    async unlinkChild(hijoId: number) {
+        const response = await this.request(`/parent/unlink-child/${hijoId}`, {
+            method: 'DELETE',
+        });
+        return response.data;
+    }
+
+    async recordAnswer(sessionId: number, answerData: {
+        situacionId: number;
+        emocionSeleccionada: string;
+        emocionCorrecta: string;
+        tiempoRespuesta?: number;
+        numeroRonda: number;
+    }) {
+        const response = await this.request(`/sessions/${sessionId}/answer`, {
+            method: 'POST',
+            body: JSON.stringify(answerData),
+        });
+        return response.data;
+    }
+
+    async getAchievements() {
+        const response = await this.request('/progress/achievements');
+        return response.data;
+    }
+
+    async getAdminDashboard() {
+        const response = await this.request('/admin/dashboard');
+        return response.data;
+    }
+
+    async getAllUsers() {
+        const response = await this.request('/admin/users');
+        return response.data;
+    }
+
+    async toggleUserStatus(userId: number, activo: boolean) {
+        const response = await this.request(`/admin/users/${userId}/toggle`, {
+            method: 'PUT',
+            body: JSON.stringify({ activo }),
+        });
+        return response.data;
+    }
+
+    async getSystemHealth() {
+        const response = await this.request('/admin/health');
         return response.data;
     }
 }

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import { apiService } from '../api/apiService';
 
@@ -52,19 +52,19 @@ export function GameProvider({ children }: { children: ReactNode }) {
         }
     };
 
-    const login = async (email: string, password: string) => {
+    const login = useCallback(async (email: string, password: string) => {
         const data = await apiService.login(email, password);
         setUser(data.user);
-    };
+    }, []);
 
-    const logout = () => {
+    const logout = useCallback(() => {
         apiService.clearToken();
         setUser(null);
         setSessionId(null);
         setCurrentGameId(null);
-    };
+    }, []);
 
-    const startSession = async (gameId: string) => {
+    const startSession = useCallback(async (gameId: string) => {
         try {
             const session = await apiService.startSession(gameId);
             setSessionId(session.id);
@@ -73,9 +73,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
             console.error("Failed to start session", error);
             throw error;
         }
-    };
+    }, []);
 
-    const finishSession = async (rounds: number, correct: number) => {
+    const finishSession = useCallback(async (rounds: number, correct: number) => {
         if (sessionId) {
             try {
                 await apiService.finishSession(sessionId, rounds, correct);
@@ -86,7 +86,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 setCurrentGameId(null);
             }
         }
-    };
+    }, [sessionId]);
 
     return (
         <GameContext.Provider

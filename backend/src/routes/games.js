@@ -9,13 +9,11 @@ const { authenticateToken } = require('../middleware/auth');
  *   get:
  *     summary: Obtener todos los juegos
  *     tags: [Games]
- *     security:
- *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Lista de juegos
  */
-router.get('/', authenticateToken, gameController.getAllGames);
+router.get('/', gameController.getAllGames);
 
 /**
  * @swagger
@@ -49,7 +47,7 @@ router.get('/emotions', authenticateToken, gameController.getAllEmotions);
  *       200:
  *         description: Detalles del juego
  */
-router.get('/:id', authenticateToken, gameController.getGameById);
+router.get('/:id', gameController.getGameById);
 
 /**
  * @swagger
@@ -69,6 +67,6 @@ router.get('/:id', authenticateToken, gameController.getGameById);
  *       200:
  *         description: Preguntas del juego
  */
-router.get('/:id/questions', authenticateToken, gameController.getGameQuestions);
+router.get('/:id/questions', gameController.getGameQuestions);
 
 module.exports = router;

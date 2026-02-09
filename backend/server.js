@@ -8,7 +8,7 @@ const startServer = async () => {
     try {
         const dbConnected = await testConnection();
         if (!dbConnected) {
-            throw new Error('No se pudo conectar a PostgreSQL');
+            throw new Error('No se pudo conectar a MySQL');
         }
 
         app.listen(PORT, '0.0.0.0', () => {

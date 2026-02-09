@@ -45,4 +45,18 @@ router.get('/emotions', authenticateToken, progressController.getEmotionsLearned
  */
 router.get('/stats', authenticateToken, progressController.getStats);
 
+/**
+ * @swagger
+ * /api/progress/achievements:
+ *   get:
+ *     summary: Obtener logros del usuario
+ *     tags: [Progress]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Logros obtenidos y disponibles
+ */
+router.get('/achievements', authenticateToken, progressController.getAchievements);
+
 module.exports = router;

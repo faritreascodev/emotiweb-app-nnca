@@ -167,9 +167,6 @@ export function FaceMatchGame() {
                 ) : (
                     <motion.div
                         key="game"
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 1.1 }}
                         className="w-full max-w-4xl text-center flex flex-col items-center"
                     >
                         <div className="bg-indigo-600/30 p-8 rounded-[50px] border-4 border-white/20 mb-12 backdrop-blur-md">

@@ -17,7 +17,7 @@ const pool = mysql.createPool({
 const query = async (text, params = []) => {
     try {
         // MySQL uses ? instead of $1, $2
-        const [rows] = await pool.execute(text, params);
+        const [rows] = await pool.query(text, params);
         return { rows };
     } catch (error) {
         logger.error('Query error:', error.message);

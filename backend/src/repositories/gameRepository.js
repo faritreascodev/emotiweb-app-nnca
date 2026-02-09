@@ -20,7 +20,8 @@ class GameRepository {
 
     async getGameQuestions(gameId, limit = 10) {
         let sql;
-        let params = [gameId, parseInt(limit)];
+        const limitNum = parseInt(limit) || 10;
+        let params = [];
 
         if (gameId === 'situation') {
             sql = `
@@ -28,17 +29,35 @@ class GameRepository {
         FROM situaciones
         WHERE juego_id = ? AND activa = true
         ORDER BY RAND()
-        LIMIT ?
+        LIMIT ${limitNum}
       `;
+            params = [gameId];
         } else if (gameId === 'face-match') {
             // For face-match, we want different emotions to match
             sql = `
         SELECT id, nombre_es as texto, emoji as imagen, id as emocion_correcta
         FROM emociones
         ORDER BY RAND()
-        LIMIT ?
+        LIMIT ${limitNum}
       `;
-            params = [parseInt(limit)];
+        } else if (gameId === 'drag-drop') {
+            // For drag-drop, get emotions with their names
+            sql = `
+        SELECT id, nombre_es as texto, emoji as imagen, id as emocion_correcta
+        FROM emociones
+        ORDER BY RAND()
+        LIMIT ${limitNum}
+      `;
+        } else if (gameId === 'story') {
+            // For story game, use situations
+            sql = `
+        SELECT id, texto, imagen, emocion_correcta, nivel_dificultad
+        FROM situaciones
+        WHERE juego_id = ? AND activa = true
+        ORDER BY RAND()
+        LIMIT ${limitNum}
+      `;
+            params = [gameId];
         } else {
             return [];
         }
@@ -46,6 +65,7 @@ class GameRepository {
         const result = await query(sql, params);
         return result.rows;
     }
+
 }
 
 module.exports = new GameRepository();

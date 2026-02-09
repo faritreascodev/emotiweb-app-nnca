@@ -91,6 +91,59 @@ CREATE TABLE IF NOT EXISTS progreso_usuario (
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
+-- Tabla para relación Padre-Hijo
+CREATE TABLE IF NOT EXISTS relaciones_padre_hijo (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    padre_id INTEGER NOT NULL,
+    hijo_id INTEGER NOT NULL,
+    fecha_vinculacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    activa BOOLEAN DEFAULT true,
+    FOREIGN KEY (padre_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+    FOREIGN KEY (hijo_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+    UNIQUE(padre_id, hijo_id),
+    CHECK (padre_id != hijo_id)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- Tabla para tracking detallado de respuestas
+CREATE TABLE IF NOT EXISTS respuestas_juego (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    sesion_id INTEGER NOT NULL,
+    situacion_id INTEGER NOT NULL,
+    emocion_seleccionada VARCHAR(20) NOT NULL,
+    emocion_correcta VARCHAR(20) NOT NULL,
+    es_correcta BOOLEAN NOT NULL,
+    tiempo_respuesta_ms INTEGER,
+    numero_ronda INTEGER NOT NULL,
+    fecha_respuesta TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (sesion_id) REFERENCES sesiones_juego(id) ON DELETE CASCADE,
+    FOREIGN KEY (situacion_id) REFERENCES situaciones(id),
+    FOREIGN KEY (emocion_seleccionada) REFERENCES emociones(id),
+    FOREIGN KEY (emocion_correcta) REFERENCES emociones(id)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- Tabla de logros/badges
+CREATE TABLE IF NOT EXISTS logros (
+    id VARCHAR(50) PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    descripcion TEXT,
+    icono VARCHAR(10) NOT NULL,
+    color VARCHAR(7) NOT NULL,
+    criterio_tipo ENUM('estrellas', 'juegos', 'racha', 'emociones', 'precision') NOT NULL,
+    criterio_valor INTEGER NOT NULL,
+    orden INTEGER NOT NULL
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- Tabla de logros obtenidos por usuarios
+CREATE TABLE IF NOT EXISTS logros_usuario (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario_id INTEGER NOT NULL,
+    logro_id VARCHAR(50) NOT NULL,
+    fecha_obtencion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+    FOREIGN KEY (logro_id) REFERENCES logros(id),
+    UNIQUE(usuario_id, logro_id)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
 -- ============================================
 -- TRIGGERS: Lógica Automática (Database 1)
 -- ============================================
@@ -124,7 +177,52 @@ BEGIN
     END IF;
 END//
 
+-- 3. Actualizar nivel de dominio de emociones al registrar respuesta
+CREATE TRIGGER tr_actualizar_emocion_aprendida
+AFTER INSERT ON respuestas_juego
+FOR EACH ROW
+BEGIN
+    DECLARE v_usuario_id INT;
+    DECLARE v_total_correctas INT;
+    DECLARE v_total_incorrectas INT;
+    DECLARE v_nuevo_nivel DECIMAL(3,2);
+    
+    -- Obtener el usuario de la sesión
+    SELECT usuario_id INTO v_usuario_id 
+    FROM sesiones_juego 
+    WHERE id = NEW.sesion_id;
+    
+    -- Insertar o actualizar el registro de emoción aprendida
+    INSERT INTO emociones_aprendidas (usuario_id, emocion_id, veces_identificada_correctamente, veces_identificada_incorrectamente, ultima_practica)
+    VALUES (
+        v_usuario_id, 
+        NEW.emocion_correcta, 
+        IF(NEW.es_correcta, 1, 0), 
+        IF(NEW.es_correcta, 0, 1),
+        CURRENT_TIMESTAMP
+    )
+    ON DUPLICATE KEY UPDATE
+        veces_identificada_correctamente = veces_identificada_correctamente + IF(NEW.es_correcta, 1, 0),
+        veces_identificada_incorrectamente = veces_identificada_incorrectamente + IF(NEW.es_correcta, 0, 1),
+        ultima_practica = CURRENT_TIMESTAMP;
+    
+    -- Calcular y actualizar el nivel de dominio
+    SELECT 
+        veces_identificada_correctamente,
+        veces_identificada_incorrectamente
+    INTO v_total_correctas, v_total_incorrectas
+    FROM emociones_aprendidas
+    WHERE usuario_id = v_usuario_id AND emocion_id = NEW.emocion_correcta;
+    
+    SET v_nuevo_nivel = v_total_correctas / (v_total_correctas + v_total_incorrectas);
+    
+    UPDATE emociones_aprendidas
+    SET nivel_dominio = v_nuevo_nivel
+    WHERE usuario_id = v_usuario_id AND emocion_id = NEW.emocion_correcta;
+END//
+
 DELIMITER ;
+
 
 -- ============================================
 -- SEEDS: Emociones
@@ -178,3 +276,25 @@ INSERT IGNORE INTO usuarios (nombre, email, password_hash, tipo, fecha_nacimient
 ('Estudiante Test', 'estudiante@test.com', '$2a$10$3AmozOL.5laiPgTLG1FYduKYKJqjLpcYv1Zlyw5i9YoHiEcbTYrIW', 'estudiante', '2020-01-15', '🐻'),
 ('Padre Test', 'padre@test.com', '$2a$10$3AmozOL.5laiPgTLG1FYduKYKJqjLpcYv1Zlyw5i9YoHiEcbTYrIW', 'padre', '1990-05-20', '👨'),
 ('Admin Test', 'admin@test.com', '$2a$10$3AmozOL.5laiPgTLG1FYduKYKJqjLpcYv1Zlyw5i9YoHiEcbTYrIW', 'admin', '1985-03-10', '🎖️');
+
+-- ============================================
+-- SEEDS: Logros/Achievements
+-- ============================================
+INSERT IGNORE INTO logros (id, nombre, descripcion, icono, color, criterio_tipo, criterio_valor, orden) VALUES
+('first_steps', 'Primeros Pasos', 'Completa tu primer juego', '👣', '#4ECDC4', 'juegos', 1, 1),
+('star_collector', 'Coleccionista de Estrellas', 'Consigue 10 estrellas', '⭐', '#FFD93D', 'estrellas', 10, 2),
+('emotion_explorer', 'Explorador de Emociones', 'Identifica correctamente las 5 emociones', '🎭', '#A78BFA', 'emociones', 5, 3),
+('super_star', 'Súper Estrella', 'Consigue 50 estrellas', '🌟', '#FF9F43', 'estrellas', 50, 4),
+('emotion_master', 'Maestro de Emociones', 'Domina 3 emociones al 70%', '🏆', '#FFD93D', 'emociones', 3, 5),
+('perfect_game', 'Juego Perfecto', 'Completa un juego sin errores', '💯', '#4ECDC4', 'precision', 100, 6),
+('dedicated_learner', 'Aprendiz Dedicado', 'Juega 20 partidas', '📚', '#6B9FFF', 'juegos', 20, 7),
+('champion', 'Campeón EmotiWeb', 'Consigue 100 estrellas', '👑', '#FF6B6B', 'estrellas', 100, 8);
+
+-- ============================================
+-- SEEDS: Relación Padre-Hijo (Para testing)
+-- ============================================
+-- Vincular Padre Test con Estudiante Test
+INSERT IGNORE INTO relaciones_padre_hijo (padre_id, hijo_id) 
+SELECT p.id, e.id 
+FROM usuarios p, usuarios e 
+WHERE p.email = 'padre@test.com' AND e.email = 'estudiante@test.com';

@@ -1,0 +1,155 @@
+const userRepository = require('../repositories/userRepository');
+const progressRepository = require('../repositories/progressRepository');
+const sessionRepository = require('../repositories/sessionRepository');
+const achievementRepository = require('../repositories/achievementRepository');
+const { query } = require('../config/database');
+const ResponseHelper = require('../utils/responseHelper');
+
+class AdminController {
+
+    async getDashboardStats(req, res) {
+        try {
+            if (req.user.tipo !== 'admin') {
+                return ResponseHelper.forbidden(res, 'Solo administradores pueden acceder');
+            }
+
+            // Estadísticas generales
+            const statsResult = await query(`
+                SELECT 
+                    (SELECT COUNT(*) FROM usuarios WHERE tipo = 'estudiante' AND activo = true) as total_estudiantes,
+                    (SELECT COUNT(*) FROM usuarios WHERE tipo = 'padre' AND activo = true) as total_padres,
+                    (SELECT COUNT(*) FROM sesiones_juego WHERE completada = true) as total_sesiones_completadas,
+                    (SELECT SUM(total_estrellas) FROM progreso_usuario) as total_estrellas_sistema,
+                    (SELECT COUNT(*) FROM logros_usuario) as total_logros_obtenidos
+            `);
+
+            // Juegos más jugados
+            const gamesResult = await query(`
+                SELECT 
+                    j.titulo,
+                    j.icono,
+                    COUNT(sj.id) as veces_jugado,
+                    AVG(sj.rondas_correctas / sj.rondas_jugadas * 100) as precision_promedio
+                FROM juegos j
+                LEFT JOIN sesiones_juego sj ON j.id = sj.juego_id AND sj.completada = true
+                GROUP BY j.id, j.titulo, j.icono
+                ORDER BY veces_jugado DESC
+            `);
+
+            // Emociones más difíciles
+            const emotionsResult = await query(`
+                SELECT 
+                    e.nombre_es,
+                    e.emoji,
+                    COUNT(rj.id) as total_respuestas,
+                    SUM(CASE WHEN rj.es_correcta = true THEN 1 ELSE 0 END) as correctas,
+                    SUM(CASE WHEN rj.es_correcta = false THEN 1 ELSE 0 END) as incorrectas,
+                    (SUM(CASE WHEN rj.es_correcta = true THEN 1 ELSE 0 END) / COUNT(rj.id) * 100) as precision
+                FROM emociones e
+                LEFT JOIN respuestas_juego rj ON e.id = rj.emocion_correcta
+                GROUP BY e.id, e.nombre_es, e.emoji
+                ORDER BY precision ASC
+            `);
+
+            // Actividad reciente
+            const recentActivity = await query(`
+                SELECT 
+                    u.nombre,
+                    u.avatar,
+                    sj.fecha_fin as fecha,
+                    j.titulo as juego,
+                    sj.estrellas_ganadas
+                FROM sesiones_juego sj
+                INNER JOIN usuarios u ON sj.usuario_id = u.id
+                INNER JOIN juegos j ON sj.juego_id = j.id
+                WHERE sj.completada = true
+                ORDER BY sj.fecha_fin DESC
+                LIMIT 10
+            `);
+
+            return ResponseHelper.success(res, {
+                estadisticas: statsResult.rows[0],
+                juegos_populares: gamesResult.rows,
+                emociones_dificultad: emotionsResult.rows,
+                actividad_reciente: recentActivity.rows
+            });
+
+        } catch (error) {
+            console.error('Error en getDashboardStats:', error);
+            return ResponseHelper.error(res, 'Error al obtener estadísticas');
+        }
+    }
+
+    async getAllUsers(req, res) {
+        try {
+            if (req.user.tipo !== 'admin') {
+                return ResponseHelper.forbidden(res, 'Solo administradores pueden acceder');
+            }
+
+            const users = await userRepository.findAll();
+
+            const usersWithStats = await Promise.all(
+                users.map(async (user) => {
+                    if (user.tipo === 'estudiante') {
+                        const stats = await progressRepository.getStats(user.id);
+                        return {
+                            ...user.toJSON(),
+                            estadisticas: stats
+                        };
+                    }
+                    return user.toJSON();
+                })
+            );
+
+            return ResponseHelper.success(res, usersWithStats);
+
+        } catch (error) {
+            console.error('Error en getAllUsers:', error);
+            return ResponseHelper.error(res, 'Error al obtener usuarios');
+        }
+    }
+
+    async toggleUserStatus(req, res) {
+        try {
+            if (req.user.tipo !== 'admin') {
+                return ResponseHelper.forbidden(res, 'Solo administradores pueden acceder');
+            }
+
+            const { userId } = req.params;
+            const { activo } = req.body;
+
+            await query('UPDATE usuarios SET activo = ? WHERE id = ?', [activo, userId]);
+
+            return ResponseHelper.success(res, null, 'Estado de usuario actualizado');
+
+        } catch (error) {
+            console.error('Error en toggleUserStatus:', error);
+            return ResponseHelper.error(res, 'Error al actualizar usuario');
+        }
+    }
+
+    async getSystemHealth(req, res) {
+        try {
+            if (req.user.tipo !== 'admin') {
+                return ResponseHelper.forbidden(res, 'Solo administradores pueden acceder');
+            }
+
+            const dbStatus = await query('SELECT 1 + 1 AS result');
+
+            const health = {
+                status: 'healthy',
+                database: dbStatus.rows[0].result === 2 ? 'connected' : 'error',
+                timestamp: new Date().toISOString(),
+                uptime: process.uptime()
+            };
+
+            return ResponseHelper.success(res, health);
+
+        } catch (error) {
+            console.error('Error en getSystemHealth:', error);
+            return ResponseHelper.error(res, 'Error al verificar salud del sistema');
+        }
+    }
+}
+
+module.exports = new AdminController();
