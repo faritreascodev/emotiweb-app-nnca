@@ -9,6 +9,8 @@ services:
       MYSQL_USER: ${DB_USER:-emotiweb_user}
       MYSQL_PASSWORD: ${DB_PASSWORD:-emotiweb_pass_2026}
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root_pass_2026}
+    ports:
+      - '3307:3306'
     volumes:
       - mysql_data:/var/lib/mysql
       - ./backend/database/init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -38,8 +40,10 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-emotiweb_pass_2026}
       JWT_SECRET: ${JWT_SECRET:-emotiweb_jwt_secret_2026}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-emotiweb_refresh_secret_2026}
-      CORS_ORIGIN: ${FRONTEND_URL:-https://studytracker.mltprdj.com}
-      FRONTEND_URL: ${FRONTEND_URL:-https://studytracker.mltprdj.com}
+      CORS_ORIGIN: ${FRONTEND_URL:-http://localhost:3000}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+    ports:
+      - "3001:3001"
     networks:
       - emotiweb-network
 
@@ -52,6 +56,8 @@ services:
       - backend
     environment:
       VITE_API_URL: /api
+    ports:
+      - "3000:80"
     networks:
       - emotiweb-network
 
