@@ -5,12 +5,10 @@ services:
     restart: unless-stopped
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     environment:
-      MYSQL_DATABASE: emotiweb_db
-      MYSQL_USER: emotiweb_user
-      MYSQL_PASSWORD: emotiweb_pass_2026
-      MYSQL_ROOT_PASSWORD: root_pass_2026
-    ports:
-      - '3307:3306'
+      MYSQL_DATABASE: ${DB_NAME:-emotiweb_db}
+      MYSQL_USER: ${DB_USER:-emotiweb_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-emotiweb_pass_2026}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root_pass_2026}
     volumes:
       - mysql_data:/var/lib/mysql
       - ./backend/database/init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -36,17 +34,13 @@ services:
       NODE_ENV: production
       DB_HOST: db
       DB_PORT: 3306
-      DB_NAME: emotiweb_db
-      DB_USER: emotiweb_user
-      DB_PASSWORD: emotiweb_pass_2026
-      JWT_SECRET: emotiweb_jwt_secret_2026
-      JWT_REFRESH_SECRET: emotiweb_refresh_secret_2026
-      CORS_ORIGIN: http://localhost:3000
-      FRONTEND_URL: http://localhost:3000
-    ports:
-      - '3001:3001'
-    volumes:
-      - ./backend/logs:/app/logs
+      DB_NAME: ${DB_NAME:-emotiweb_db}
+      DB_USER: ${DB_USER:-emotiweb_user}
+      DB_PASSWORD: ${DB_PASSWORD:-emotiweb_pass_2026}
+      JWT_SECRET: ${JWT_SECRET:-emotiweb_jwt_secret_2026}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-emotiweb_refresh_secret_2026}
+      CORS_ORIGIN: ${FRONTEND_URL:-https://studytracker.mltprdj.com}
+      FRONTEND_URL: ${FRONTEND_URL:-https://studytracker.mltprdj.com}
     networks:
       - emotiweb-network
 
@@ -58,6 +52,8 @@ services:
     restart: unless-stopped
     depends_on:
       - backend
+    environment:
+      VITE_API_URL: /api
     ports:
       - '3000:80'
     networks:
