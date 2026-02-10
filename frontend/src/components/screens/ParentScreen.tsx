@@ -13,16 +13,36 @@ export function ParentScreen() {
     const [loading, setLoading] = useState(true);
     const [statsLoading, setStatsLoading] = useState(false);
 
+    const [myChildrenIds, setMyChildrenIds] = useState<number[]>([]);
+    const [actionLoading, setActionLoading] = useState<number | null>(null);
+
     const loadData = useCallback(async () => {
         try {
-            const data = await apiService.getAllStudents();
-            setStudents(data);
+            const [allStudents, linkedChildren] = await Promise.all([
+                apiService.getAllStudents(),
+                apiService.getMyChildren()
+            ]);
+            setStudents(allStudents);
+            setMyChildrenIds(linkedChildren.map((c: any) => c.id));
         } catch (e) {
             console.error("Error loading students", e);
         } finally {
             setLoading(false);
         }
     }, []);
+
+    const handleLinkChild = async (e: React.MouseEvent, childId: number) => {
+        e.stopPropagation();
+        setActionLoading(childId);
+        try {
+            await apiService.linkChild(childId);
+            setMyChildrenIds(prev => [...prev, childId]);
+        } catch (e) {
+            alert("Error al vincular el estudiante");
+        } finally {
+            setActionLoading(null);
+        }
+    };
 
     useEffect(() => {
         if (user?.tipo === 'estudiante') {
@@ -33,6 +53,10 @@ export function ParentScreen() {
     }, [user, navigate, loadData]);
 
     const loadStudentProgress = async (studentId: number) => {
+        if (!myChildrenIds.includes(studentId) && user?.tipo !== 'admin') {
+            alert("Debes vincular primero a este estudiante para ver su progreso.");
+            return;
+        }
         setStatsLoading(true);
         try {
             const data = await apiService.getChildProgress(studentId);
@@ -45,6 +69,7 @@ export function ParentScreen() {
     };
 
     if (loading) return (
+        // ... (loading state)
         <div className="min-h-[60vh] flex flex-col items-center justify-center text-white">
             <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity }}>
                 <Heart size={64} className="text-pink-500 fill-pink-500" />
@@ -55,6 +80,7 @@ export function ParentScreen() {
 
     return (
         <div className="max-w-7xl mx-auto pb-20">
+            {/* ... Header ... */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12 px-4">
                 <div className="flex items-center">
                     <motion.button
@@ -88,35 +114,53 @@ export function ParentScreen() {
                 <div className="lg:col-span-4 space-y-6">
                     <div className="bg-white/95 rounded-[45px] p-8 shadow-2xl border-b-[12px] border-gray-200">
                         <h2 className="text-2xl font-black text-indigo-950 mb-6 flex items-center gap-3 italic uppercase">
-                            <Users className="text-indigo-600" /> Mis Estudiantes
+                            <Users className="text-indigo-600" /> Directorio de Estudiantes
                         </h2>
                         <div className="space-y-4">
-                            {students.map((student) => (
-                                <motion.div
-                                    key={student.id}
-                                    whileHover={{ x: 10 }}
-                                    onClick={() => loadStudentProgress(student.id)}
-                                    className={`
-                                        p-5 rounded-[30px] cursor-pointer transition-all flex items-center justify-between group
-                                        ${selectedStudent?.estudiante?.id === student.id
-                                            ? 'bg-indigo-600 text-white shadow-xl scale-[1.02] border-b-6 border-indigo-800'
-                                            : 'bg-indigo-50 text-indigo-900 hover:bg-indigo-100 border-b-4 border-indigo-100'}
-                                    `}
-                                >
-                                    <div className="flex items-center gap-4">
-                                        <div className={`text-3xl w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-transform group-hover:rotate-12 ${selectedStudent?.estudiante?.id === student.id ? 'bg-white/20' : 'bg-white'}`}>
-                                            {student.avatar || '🎒'}
-                                        </div>
-                                        <div>
-                                            <div className="font-black text-lg leading-tight uppercase tracking-tight">{student.nombre}</div>
-                                            <div className={`text-xs font-bold ${selectedStudent?.estudiante?.id === student.id ? 'text-indigo-200' : 'text-indigo-400'}`}>
-                                                {student.email}
+                            {students.map((student) => {
+                                const isLinked = myChildrenIds.includes(student.id) || user?.tipo === 'admin';
+                                return (
+                                    <motion.div
+                                        key={student.id}
+                                        whileHover={{ x: 10 }}
+                                        onClick={() => isLinked ? loadStudentProgress(student.id) : null}
+                                        className={`
+                                            p-5 rounded-[30px] transition-all flex items-center justify-between group
+                                            ${selectedStudent?.estudiante?.id === student.id
+                                                ? 'bg-indigo-600 text-white shadow-xl scale-[1.02] border-b-6 border-indigo-800'
+                                                : isLinked
+                                                    ? 'bg-indigo-50 text-indigo-900 hover:bg-indigo-100 border-b-4 border-indigo-100 cursor-pointer'
+                                                    : 'bg-gray-100 text-gray-500 border-b-4 border-gray-200'}
+                                        `}
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className={`text-3xl w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-transform group-hover:rotate-12 ${selectedStudent?.estudiante?.id === student.id ? 'bg-white/20' : 'bg-white'}`}>
+                                                {student.avatar || '🎒'}
+                                            </div>
+                                            <div>
+                                                <div className="font-black text-lg leading-tight uppercase tracking-tight">{student.nombre}</div>
+                                                <div className={`text-xs font-bold ${selectedStudent?.estudiante?.id === student.id ? 'text-indigo-200' : 'text-indigo-400'}`}>
+                                                    {isLinked ? student.email : 'Protegido'}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <ChevronRight className={selectedStudent?.estudiante?.id === student.id ? 'text-white' : 'text-indigo-300'} />
-                                </motion.div>
-                            ))}
+
+                                        {!isLinked ? (
+                                            <motion.button
+                                                whileHover={{ scale: 1.05 }}
+                                                whileTap={{ scale: 0.95 }}
+                                                onClick={(e) => handleLinkChild(e, student.id)}
+                                                disabled={actionLoading === student.id}
+                                                className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-black shadow-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
+                                            >
+                                                {actionLoading === student.id ? <Loader2 className="animate-spin" size={14} /> : 'VINCULAR'}
+                                            </motion.button>
+                                        ) : (
+                                            <ChevronRight className={selectedStudent?.estudiante?.id === student.id ? 'text-white' : 'text-indigo-300'} />
+                                        )}
+                                    </motion.div>
+                                );
+                            })}
                             {students.length === 0 && (
                                 <div className="text-center py-10">
                                     <p className="text-indigo-300 italic font-bold">No hay estudiantes registrados aún.</p>
