@@ -292,12 +292,19 @@ INSERT IGNORE INTO situaciones (juego_id, texto, imagen, emocion_correcta, nivel
 ('situation', 'Recibes una visita sorpresa de tus abuelos', '👵', 'joy', 1);
 
 -- ============================================
--- SEEDS: Usuarios de Prueba (Password: password123)
+-- SEEDS: Usuarios Complementarios (Password: password123)
 -- ============================================
 INSERT IGNORE INTO usuarios (nombre, email, password_hash, tipo, fecha_nacimiento, avatar) VALUES
 ('Estudiante Test', 'estudiante@test.com', '$2a$10$3AmozOL.5laiPgTLG1FYduKYKJqjLpcYv1Zlyw5i9YoHiEcbTYrIW', 'estudiante', '2020-01-15', '🐻'),
 ('Padre Test', 'padre@test.com', '$2a$10$3AmozOL.5laiPgTLG1FYduKYKJqjLpcYv1Zlyw5i9YoHiEcbTYrIW', 'padre', '1990-05-20', '👨'),
-('Admin Test', 'admin@test.com', '$2a$10$3AmozOL.5laiPgTLG1FYduKYKJqjLpcYv1Zlyw5i9YoHiEcbTYrIW', 'admin', '1985-03-10', '🎖️');
+('Admin Test', 'admin@test.com', '$2a$10$3AmozOL.5laiPgTLG1FYduKYKJqjLpcYv1Zlyw5i9YoHiEcbTYrIW', 'admin', '1985-03-10', '🎖️'),
+('Carlos García', 'carlos.padre@gmail.com', '$2a$10$3AmozOL.5laiPgTLG1FYduKYKJqjLpcYv1Zlyw5i9YoHiEcbTYrIW', 'padre', '1988-11-05', '👨‍💼'),
+('Mateo García', 'mateo.est@gmail.com', '$2a$10$3AmozOL.5laiPgTLG1FYduKYKJqjLpcYv1Zlyw5i9YoHiEcbTYrIW', 'estudiante', '2019-04-12', '🦊'),
+('Lucía García', 'lucia.est@gmail.com', '$2a$10$3AmozOL.5laiPgTLG1FYduKYKJqjLpcYv1Zlyw5i9YoHiEcbTYrIW', 'estudiante', '2021-08-20', '🐰'),
+('Elena López', 'elena.madre@outlook.com', '$2a$10$3AmozOL.5laiPgTLG1FYduKYKJqjLpcYv1Zlyw5i9YoHiEcbTYrIW', 'padre', '1992-02-14', '👩‍🏫'),
+('Santi López', 'santi.est@outlook.com', '$2a$10$3AmozOL.5laiPgTLG1FYduKYKJqjLpcYv1Zlyw5i9YoHiEcbTYrIW', 'estudiante', '2018-12-01', '🦁'),
+('Valentina Ramírez', 'val.madre@yahoo.com', '$2a$10$3AmozOL.5laiPgTLG1FYduKYKJqjLpcYv1Zlyw5i9YoHiEcbTYrIW', 'padre', '1995-07-25', '👩‍🎨'),
+('Emma Ramírez', 'emma.est@yahoo.com', '$2a$10$3AmozOL.5laiPgTLG1FYduKYKJqjLpcYv1Zlyw5i9YoHiEcbTYrIW', 'estudiante', '2022-01-10', '🐱');
 
 -- ============================================
 -- SEEDS: Logros/Achievements
@@ -313,7 +320,42 @@ INSERT IGNORE INTO logros (id, nombre, descripcion, icono, color, criterio_tipo,
 ('champion', 'Campeón EmotiWeb', 'Consigue 100 estrellas', '👑', '#FF6B6B', 'estrellas', 100, 8);
 
 -- ============================================
--- SEEDS: Relación Padre-Hijo (Para testing)
+-- SEEDS: Vinculaciones Familiares
+-- ============================================
+INSERT IGNORE INTO relaciones_padre_hijo (padre_id, hijo_id) 
+SELECT p.id, h.id FROM usuarios p, usuarios h WHERE p.email = 'carlos.padre@gmail.com' AND h.email IN ('mateo.est@gmail.com', 'lucia.est@gmail.com');
+
+INSERT IGNORE INTO relaciones_padre_hijo (padre_id, hijo_id) 
+SELECT p.id, h.id FROM usuarios p, usuarios h WHERE p.email = 'elena.madre@outlook.com' AND h.email = 'santi.est@outlook.com';
+
+INSERT IGNORE INTO relaciones_padre_hijo (padre_id, hijo_id) 
+SELECT p.id, h.id FROM usuarios p, usuarios h WHERE p.email = 'val.madre@yahoo.com' AND h.email = 'emma.est@yahoo.com';
+
+-- ============================================
+-- SEEDS: Sesiones de Juego (Historial para estadísticas)
+-- ============================================
+-- Sesiones para Mateo García (Muy aplicado)
+INSERT INTO sesiones_juego (usuario_id, juego_id, fecha_inicio, fecha_fin, completada, rondas_jugadas, rondas_correctas, estrellas_ganadas)
+SELECT id, 'face-match', DATE_SUB(NOW(), INTERVAL 1 DAY), NOW(), true, 5, 5, 15 FROM usuarios WHERE email = 'mateo.est@gmail.com';
+
+INSERT INTO sesiones_juego (usuario_id, juego_id, fecha_inicio, fecha_fin, completada, rondas_jugadas, rondas_correctas, estrellas_ganadas)
+SELECT id, 'situation', DATE_SUB(NOW(), INTERVAL 2 DAY), DATE_SUB(NOW(), INTERVAL 2 DAY), true, 5, 4, 12 FROM usuarios WHERE email = 'mateo.est@gmail.com';
+
+-- Sesiones para Santi López
+INSERT INTO sesiones_juego (usuario_id, juego_id, fecha_inicio, fecha_fin, completada, rondas_jugadas, rondas_correctas, estrellas_ganadas)
+SELECT id, 'drag-drop', DATE_SUB(NOW(), INTERVAL 5 HOUR), NOW(), true, 3, 3, 10 FROM usuarios WHERE email = 'santi.est@outlook.com';
+
+-- ============================================
+-- SEEDS: Logros ya obtenidos
+-- ============================================
+INSERT IGNORE INTO logros_usuario (usuario_id, logro_id)
+SELECT u.id, 'first_steps' FROM usuarios u WHERE u.tipo = 'estudiante' AND u.email IN ('mateo.est@gmail.com', 'santi.est@outlook.com');
+
+INSERT IGNORE INTO logros_usuario (usuario_id, logro_id)
+SELECT u.id, 'star_collector' FROM usuarios u WHERE u.email = 'mateo.est@gmail.com';
+
+-- ============================================
+-- SEEDS: Relación Padre-Hijo (Test Original)
 -- ============================================
 -- Vincular Padre Test con Estudiante Test
 INSERT IGNORE INTO relaciones_padre_hijo (padre_id, hijo_id) 

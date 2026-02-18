@@ -7,10 +7,8 @@ services:
     environment:
       MYSQL_DATABASE: ${DB_NAME:-emotiweb_db}
       MYSQL_USER: ${DB_USER:-emotiweb_user}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-emotiweb_pass_2026}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-emotiweb_secure_pass_2026}
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root_pass_2026}
-    ports:
-      - '3307:3306'
     volumes:
       - mysql_data:/var/lib/mysql
       - ./backend/database/init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -32,18 +30,16 @@ services:
         condition: service_healthy
     environment:
       PORT: 3001
-      NODE_ENV: production
+      NODE_ENV: ${NODE_ENV:-production}
       DB_HOST: db
       DB_PORT: 3306
       DB_NAME: ${DB_NAME:-emotiweb_db}
       DB_USER: ${DB_USER:-emotiweb_user}
-      DB_PASSWORD: ${DB_PASSWORD:-emotiweb_pass_2026}
-      JWT_SECRET: ${JWT_SECRET:-emotiweb_jwt_secret_2026}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-emotiweb_refresh_secret_2026}
-      CORS_ORIGIN: ${FRONTEND_URL:-http://localhost:3000}
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
-    ports:
-      - "3001:3001"
+      DB_PASSWORD: ${DB_PASSWORD:-emotiweb_secure_pass_2026}
+      JWT_SECRET: ${JWT_SECRET:-emotiweb.jwt.clave.nnca}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-emotiweb.refresh.clave.nnca}
+      CORS_ORIGIN: ${FRONTEND_URL:-https://emotiweb.mltprdj.com}
+      FRONTEND_URL: ${FRONTEND_URL:-https://emotiweb.mltprdj.com}
     networks:
       - emotiweb-network
 
@@ -57,7 +53,7 @@ services:
     environment:
       VITE_API_URL: /api
     ports:
-      - "3000:3000"
+      - "80:80"
     networks:
       - emotiweb-network
 
