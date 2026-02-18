@@ -13,7 +13,7 @@ export function RegisterScreen() {
         nombre: '',
         email: '',
         password: '',
-        tipo: 'estudiante' as 'estudiante' | 'padre' | 'admin',
+        tipo: 'padre' as 'estudiante' | 'padre' | 'admin',
         fechaNacimiento: '',
         avatar: '🐻'
     });
@@ -158,18 +158,18 @@ export function RegisterScreen() {
                             >
                                 <div className="space-y-4">
                                     <label className="text-sm font-medium text-purple-200 block text-center">Selecciona tu Rol</label>
-                                    <div className="grid grid-cols-3 gap-4">
-                                        {(['estudiante', 'padre', 'admin'] as const).map((role) => (
+                                    <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto">
+                                        {(['padre', 'admin'] as const).map((role) => (
                                             <button
                                                 key={role}
                                                 type="button"
                                                 onClick={() => setFormData({ ...formData, tipo: role })}
-                                                className={`p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 capitalize ${formData.tipo === role ? 'bg-yellow-400 border-yellow-300 text-indigo-900 shadow-lg' : 'bg-white/5 border-white/10 text-purple-200 hover:bg-white/10'}`}
+                                                className={`p-6 rounded-2xl border-2 transition-all flex flex-col items-center gap-3 capitalize ${formData.tipo === role ? 'bg-yellow-400 border-yellow-300 text-indigo-900 shadow-xl' : 'bg-white/5 border-white/20 text-purple-200 hover:bg-white/10'}`}
                                             >
-                                                <div className="text-2xl">
-                                                    {role === 'estudiante' ? '🎒' : role === 'padre' ? '👨‍👩‍👧' : '🎖️'}
+                                                <div className="text-4xl">
+                                                    {role === 'padre' ? '👨‍👩‍👧' : '🎖️'}
                                                 </div>
-                                                <span className="text-xs font-bold">{role}</span>
+                                                <span className="text-sm font-bold uppercase tracking-tight">{role === 'padre' ? 'APODERADO' : 'ADMINISTRADOR'}</span>
                                             </button>
                                         ))}
                                     </div>
