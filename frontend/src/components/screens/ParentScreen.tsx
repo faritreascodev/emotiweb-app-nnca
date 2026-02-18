@@ -13,17 +13,14 @@ export function ParentScreen() {
     const [loading, setLoading] = useState(true);
     const [statsLoading, setStatsLoading] = useState(false);
 
-    const [myChildrenIds, setMyChildrenIds] = useState<number[]>([]);
-    const [actionLoading, setActionLoading] = useState<number | null>(null);
+    const [showRegisterModal, setShowRegisterModal] = useState(false);
+    const [newChild, setNewChild] = useState({ nombre: '', email: '', password: '', fechaNacimiento: '', avatar: '🐻' });
+    const avatars = ['🐻', '🦊', '🐰', '🐱', '🐶', '🦁', '🐼', '🐨'];
 
     const loadData = useCallback(async () => {
         try {
-            const [allStudents, linkedChildren] = await Promise.all([
-                apiService.getAllStudents(),
-                apiService.getMyChildren()
-            ]);
-            setStudents(allStudents);
-            setMyChildrenIds(linkedChildren.map((c: any) => c.id));
+            const data = await apiService.getMyChildren();
+            setStudents(data);
         } catch (e) {
             console.error("Error loading students", e);
         } finally {
@@ -31,16 +28,18 @@ export function ParentScreen() {
         }
     }, []);
 
-    const handleLinkChild = async (e: React.MouseEvent, childId: number) => {
-        e.stopPropagation();
-        setActionLoading(childId);
+    const handleRegisterChild = async (e: React.FormEvent) => {
+        e.preventDefault();
         try {
-            await apiService.linkChild(childId);
-            setMyChildrenIds(prev => [...prev, childId]);
-        } catch (e) {
-            alert("Error al vincular el estudiante");
-        } finally {
-            setActionLoading(null);
+            await apiService.registerChild({
+                ...newChild,
+                fechaNacimiento: newChild.fechaNacimiento || null
+            });
+            setShowRegisterModal(false);
+            setNewChild({ nombre: '', email: '', password: '', fechaNacimiento: '', avatar: '🐻' });
+            loadData(); // Reload to show the new child
+        } catch (e: any) {
+            alert(e.message || "Error al registrar");
         }
     };
 
@@ -53,10 +52,6 @@ export function ParentScreen() {
     }, [user, navigate, loadData]);
 
     const loadStudentProgress = async (studentId: number) => {
-        if (!myChildrenIds.includes(studentId) && user?.tipo !== 'admin') {
-            alert("Debes vincular primero a este estudiante para ver su progreso.");
-            return;
-        }
         setStatsLoading(true);
         try {
             const data = await apiService.getChildProgress(studentId);
@@ -69,7 +64,6 @@ export function ParentScreen() {
     };
 
     if (loading) return (
-        // ... (loading state)
         <div className="min-h-[60vh] flex flex-col items-center justify-center text-white">
             <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity }}>
                 <Heart size={64} className="text-pink-500 fill-pink-500" />
@@ -80,7 +74,6 @@ export function ParentScreen() {
 
     return (
         <div className="max-w-7xl mx-auto pb-20">
-            {/* ... Header ... */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12 px-4">
                 <div className="flex items-center">
                     <motion.button
@@ -93,74 +86,139 @@ export function ParentScreen() {
                     </motion.button>
                     <div>
                         <h1 className="text-5xl font-black text-white italic drop-shadow-lg uppercase tracking-tight">
-                            Seguimiento
+                            {user?.tipo === 'admin' ? 'Panel de Control' : 'Mis Pequeños'}
                         </h1>
-                        <p className="text-xl text-purple-200 font-medium">Supervisa el crecimiento emocional de los pequeños</p>
+                        <p className="text-xl text-purple-200 font-medium">
+                            {user?.tipo === 'admin' ? 'Administración global del sistema' : 'Supervisa el crecimiento de tus hijos'}
+                        </p>
                     </div>
                 </div>
 
-                <div className="bg-indigo-950/50 p-4 rounded-[30px] border border-white/10 flex items-center gap-4 shadow-2xl backdrop-blur-md">
-                    <div className="bg-indigo-500 p-3 rounded-2xl shadow-lg border-b-4 border-indigo-700">
-                        <BarChart3 className="text-white" />
-                    </div>
-                    <div className="pr-4">
-                        <div className="text-xs text-indigo-300 font-black uppercase tracking-wider">Estudiantes</div>
-                        <div className="text-2xl font-black text-white">{students.length}</div>
+                <div className="flex items-center gap-4">
+                    <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setShowRegisterModal(true)}
+                        className="bg-green-500 text-white px-8 py-4 rounded-[25px] font-black italic uppercase shadow-xl border-b-8 border-green-700 hover:bg-green-400 transition-all flex items-center gap-2"
+                    >
+                        <Users size={24} /> Registrar {user?.tipo === 'admin' ? 'Estudiante' : 'Hijo'}
+                    </motion.button>
+
+                    <div className="bg-indigo-950/50 p-4 rounded-[30px] border border-white/10 flex items-center gap-4 shadow-2xl backdrop-blur-md">
+                        <div className="bg-indigo-500 p-3 rounded-2xl shadow-lg border-b-4 border-indigo-700">
+                            <BarChart3 className="text-white" />
+                        </div>
+                        <div className="pr-4 text-center">
+                            <div className="text-xs text-indigo-300 font-black uppercase tracking-wider">{user?.tipo === 'admin' ? 'Total' : 'Hijos'}</div>
+                            <div className="text-2xl font-black text-white">{students.length}</div>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            {/* Modal de Registro */}
+            <AnimatePresence>
+                {showRegisterModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-indigo-950/80 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="bg-white rounded-[50px] p-10 w-full max-w-xl shadow-2xl border-b-[15px] border-indigo-100"
+                        >
+                            <h2 className="text-4xl font-black text-indigo-950 mb-8 italic uppercase tracking-tighter">Nuevo Registro</h2>
+                            <form onSubmit={handleRegisterChild} className="space-y-6">
+                                <div className="grid grid-cols-2 gap-4 mb-8">
+                                    {avatars.map(av => (
+                                        <button
+                                            key={av}
+                                            type="button"
+                                            onClick={() => setNewChild({ ...newChild, avatar: av })}
+                                            className={`text-4xl p-4 rounded-3xl transition-all ${newChild.avatar === av ? 'bg-indigo-600 scale-110 shadow-xl' : 'bg-indigo-50 hover:bg-indigo-100'}`}
+                                        >
+                                            {av}
+                                        </button>
+                                    ))}
+                                </div>
+                                <input
+                                    type="text"
+                                    placeholder="Nombre Completo"
+                                    required
+                                    className="w-full p-5 bg-indigo-50 rounded-2xl border-none font-bold text-indigo-950 placeholder:text-indigo-300 focus:ring-4 focus:ring-indigo-200"
+                                    value={newChild.nombre}
+                                    onChange={e => setNewChild({ ...newChild, nombre: e.target.value })}
+                                />
+                                <input
+                                    type="email"
+                                    placeholder="Email"
+                                    required
+                                    className="w-full p-5 bg-indigo-50 rounded-2xl border-none font-bold text-indigo-950 focus:ring-4 focus:ring-indigo-200"
+                                    value={newChild.email}
+                                    onChange={e => setNewChild({ ...newChild, email: e.target.value })}
+                                />
+                                <input
+                                    type="password"
+                                    placeholder="Contraseña"
+                                    required
+                                    className="w-full p-5 bg-indigo-50 rounded-2xl border-none font-bold text-indigo-950 focus:ring-4 focus:ring-indigo-200"
+                                    value={newChild.password}
+                                    onChange={e => setNewChild({ ...newChild, password: e.target.value })}
+                                />
+                                <div className="flex gap-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowRegisterModal(false)}
+                                        className="flex-1 p-5 rounded-2xl font-black text-indigo-400 uppercase tracking-widest hover:bg-gray-50 transition-colors"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="flex-1 p-5 bg-indigo-600 rounded-2xl font-black text-white uppercase tracking-widest shadow-lg border-b-6 border-indigo-800 hover:bg-indigo-500 transition-all"
+                                    >
+                                        Guardar
+                                    </button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 px-4">
                 <div className="lg:col-span-4 space-y-6">
                     <div className="bg-white/95 rounded-[45px] p-8 shadow-2xl border-b-[12px] border-gray-200">
                         <h2 className="text-2xl font-black text-indigo-950 mb-6 flex items-center gap-3 italic uppercase">
-                            <Users className="text-indigo-600" /> Directorio de Estudiantes
+                            <Users className="text-indigo-600" /> {user?.tipo === 'admin' ? 'Todos los Estudiantes' : 'Mis Hijos'}
                         </h2>
                         <div className="space-y-4">
-                            {students.map((student) => {
-                                const isLinked = myChildrenIds.includes(student.id) || user?.tipo === 'admin';
-                                return (
-                                    <motion.div
-                                        key={student.id}
-                                        whileHover={{ x: 10 }}
-                                        onClick={() => isLinked ? loadStudentProgress(student.id) : null}
-                                        className={`
-                                            p-5 rounded-[30px] transition-all flex items-center justify-between group
-                                            ${selectedStudent?.estudiante?.id === student.id
-                                                ? 'bg-indigo-600 text-white shadow-xl scale-[1.02] border-b-6 border-indigo-800'
-                                                : isLinked
-                                                    ? 'bg-indigo-50 text-indigo-900 hover:bg-indigo-100 border-b-4 border-indigo-100 cursor-pointer'
-                                                    : 'bg-gray-100 text-gray-500 border-b-4 border-gray-200'}
-                                        `}
-                                    >
-                                        <div className="flex items-center gap-4">
-                                            <div className={`text-3xl w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-transform group-hover:rotate-12 ${selectedStudent?.estudiante?.id === student.id ? 'bg-white/20' : 'bg-white'}`}>
-                                                {student.avatar || '🎒'}
-                                            </div>
-                                            <div>
-                                                <div className="font-black text-lg leading-tight uppercase tracking-tight">{student.nombre}</div>
-                                                <div className={`text-xs font-bold ${selectedStudent?.estudiante?.id === student.id ? 'text-indigo-200' : 'text-indigo-400'}`}>
-                                                    {isLinked ? student.email : 'Protegido'}
-                                                </div>
+                            {students.map((student) => (
+                                <motion.div
+                                    key={student.id}
+                                    whileHover={{ x: 10 }}
+                                    onClick={() => loadStudentProgress(student.id)}
+                                    className={`
+                                        p-5 rounded-[30px] transition-all flex items-center justify-between group cursor-pointer
+                                        ${selectedStudent?.estudiante?.id === student.id
+                                            ? 'bg-indigo-600 text-white shadow-xl scale-[1.02] border-b-6 border-indigo-800'
+                                            : 'bg-indigo-50 text-indigo-900 hover:bg-indigo-100 border-b-4 border-indigo-100'}
+                                    `}
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className={`text-3xl w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-transform group-hover:rotate-12 ${selectedStudent?.estudiante?.id === student.id ? 'bg-white/20' : 'bg-white'}`}>
+                                            {student.avatar || '🎒'}
+                                        </div>
+                                        <div>
+                                            <div className="font-black text-lg leading-tight uppercase tracking-tight">{student.nombre}</div>
+                                            <div className={`text-xs font-bold ${selectedStudent?.estudiante?.id === student.id ? 'text-indigo-200' : 'text-indigo-400'}`}>
+                                                {student.email}
                                             </div>
                                         </div>
+                                    </div>
 
-                                        {!isLinked ? (
-                                            <motion.button
-                                                whileHover={{ scale: 1.05 }}
-                                                whileTap={{ scale: 0.95 }}
-                                                onClick={(e) => handleLinkChild(e, student.id)}
-                                                disabled={actionLoading === student.id}
-                                                className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-black shadow-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
-                                            >
-                                                {actionLoading === student.id ? <Loader2 className="animate-spin" size={14} /> : 'VINCULAR'}
-                                            </motion.button>
-                                        ) : (
-                                            <ChevronRight className={selectedStudent?.estudiante?.id === student.id ? 'text-white' : 'text-indigo-300'} />
-                                        )}
-                                    </motion.div>
-                                );
-                            })}
+                                    <ChevronRight className={selectedStudent?.estudiante?.id === student.id ? 'text-white' : 'text-indigo-300'} />
+                                </motion.div>
+                            ))}
                             {students.length === 0 && (
                                 <div className="text-center py-10">
                                     <p className="text-indigo-300 italic font-bold">No hay estudiantes registrados aún.</p>

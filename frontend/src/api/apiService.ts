@@ -111,6 +111,14 @@ class ApiService {
         return response.data;
     }
 
+    async registerChild(data: any) {
+        const response = await this.request('/parent/register-child', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+        return response.data;
+    }
+
     async linkChild(hijoId: number) {
         const response = await this.request('/parent/link-child', {
             method: 'POST',

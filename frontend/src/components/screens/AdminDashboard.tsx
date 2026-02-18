@@ -25,7 +25,7 @@ export function AdminDashboard() {
     const fetchUsers = async () => {
         try {
             setLoading(true);
-            const data = await apiService.getAllStudents();
+            const data = await apiService.getAllUsers();
             setUsersList(data);
         } catch (error) {
             console.error(error);

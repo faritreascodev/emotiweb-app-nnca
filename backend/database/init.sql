@@ -267,7 +267,29 @@ INSERT IGNORE INTO situaciones (juego_id, texto, imagen, emocion_correcta, nivel
 ('face-match', 'Tristeza', '😢', 'sadness', 1),
 ('face-match', 'Enojo', '😠', 'anger', 1),
 ('face-match', 'Miedo', '😨', 'fear', 1),
-('face-match', 'Sorpresa', '😲', 'surprise', 1);
+('face-match', 'Sorpresa', '😲', 'surprise', 1),
+('face-match', 'Vergüenza', '😳', 'sadness', 2),
+('face-match', 'Entusiasmo', '🤩', 'joy', 2),
+('face-match', 'Preocupación', '😨', 'fear', 2),
+
+-- Story situations
+('story', 'Había una vez un osito que invitó a todos sus amigos a una fiesta de cumpleaños en el bosque.', '🎉', 'joy', 1),
+('story', 'Pero de repente, empezó a llover muy fuerte y la decoración se arruinó.', '🌧️', 'sadness', 1),
+('story', 'Entonces apareció un hada mágica con un paraguas gigante para proteger el pastel.', '✨', 'surprise', 1),
+('story', 'Un lobo gruñón intentó robarse los globos de la fiesta.', '🐺', 'anger', 1),
+('story', 'Al final, todos bailaron bajo la lluvia y se divirtieron muchísimo.', '💃', 'joy', 1),
+
+-- More Situations for 'situation'
+('situation', 'Encuentras una moneda de oro en el parque', '🪙', 'joy', 2),
+('situation', 'Te das cuenta de que no hiciste la tarea para mañana', '📝', 'fear', 2),
+('situation', 'Alguien se burla de tus zapatos nuevos', '👟', 'sadness', 2),
+('situation', 'Logras armar un rompecabezas muy difícil', '🧩', 'joy', 1),
+('situation', 'Ves a un payaso haciendo malabares con fuego', '🔥', 'surprise', 2),
+('situation', 'Tu helado se cae al suelo antes del primer bocado', '🍦', 'sadness', 1),
+('situation', 'Tu mejor amigo se muda a otra ciudad', '✈️', 'sadness', 3),
+('situation', 'Ganas primer lugar en la carrera de la escuela', '🥇', 'joy', 1),
+('situation', 'Te pierdes momentáneamente en el centro comercial', '🏬', 'fear', 3),
+('situation', 'Recibes una visita sorpresa de tus abuelos', '👵', 'joy', 1);
 
 -- ============================================
 -- SEEDS: Usuarios de Prueba (Password: password123)

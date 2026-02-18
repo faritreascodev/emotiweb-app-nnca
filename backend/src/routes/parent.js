@@ -96,4 +96,40 @@ router.post('/link-child', authenticateToken, requireRole('padre'), parentContro
  */
 router.delete('/unlink-child/:hijoId', authenticateToken, requireRole('padre'), parentController.unlinkChild);
 
+/**
+ * @swagger
+ * /api/parent/register-child:
+ *   post:
+ *     summary: Registrar un nuevo hijo directamente (solo padres/admin)
+ *     tags: [Parent]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - nombre
+ *               - email
+ *               - password
+ *             properties:
+ *               nombre:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               fechaNacimiento:
+ *                 type: string
+ *                 format: date
+ *               avatar:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Estudiante registrado exitosamente
+ */
+router.post('/register-child', authenticateToken, requireRole('padre', 'admin'), parentController.registerChild);
+
 module.exports = router;

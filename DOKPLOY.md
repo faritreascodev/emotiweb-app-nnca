@@ -1,6 +1,6 @@
 # 🚀 Guía de Despliegue en Dokploy - EmotiWeb
 
-He adaptado el sistema para que funcione perfectamente en `studytracker.mltprdj.com`. Sigue estos pasos en tu panel de Dokploy:
+He adaptado el sistema para que funcione perfectamente en `emotiweb.mltprdj.com`. Sigue estos pasos en tu panel de Dokploy:
 
 ## 1. Crear el Proyecto
 1. Ve a tu panel de Dokploy.
@@ -16,7 +16,7 @@ En la pestaña **Environment** de tu servicio en Dokploy, agrega estas variables
 
 | Key | Value |
 | :--- | :--- |
-| `FRONTEND_URL` | `https://studytracker.mltprdj.com` |
+| `FRONTEND_URL` | `https://emotiweb.mltprdj.com` |
 | `DB_NAME` | `emotiweb_db` |
 | `DB_USER` | `emotiweb_user` |
 | `DB_PASSWORD` | `[TuContraseñaSegura]` |
@@ -26,7 +26,7 @@ En la pestaña **Environment** de tu servicio en Dokploy, agrega estas variables
 
 ## 4. Configuración del Dominio
 1. Ve a la pestaña **Domains** del servicio.
-2. Agrega el dominio: `studytracker.mltprdj.com`.
+2. Agrega el dominio: `emotiweb.mltprdj.com`.
 3. Selecciona el servicio **frontend** (puerto 80) para este dominio.
 4. Activa **HTTPS (Let's Encrypt)**.
 

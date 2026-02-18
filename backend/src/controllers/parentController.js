@@ -86,8 +86,8 @@ class ParentController {
 
     async getAllStudents(req, res) {
         try {
-            if (req.user.tipo !== 'padre' && req.user.tipo !== 'admin') {
-                return ResponseHelper.forbidden(res, 'Solo padres y admin pueden ver estudiantes');
+            if (req.user.tipo !== 'admin') {
+                return ResponseHelper.forbidden(res, 'Solo administradores pueden acceder a la lista global');
             }
 
             const users = await userRepository.findAll();
@@ -153,6 +153,43 @@ class ParentController {
         } catch (error) {
             console.error('Error en unlinkChild:', error);
             return ResponseHelper.error(res, 'Error al desvincular hijo');
+        }
+    }
+
+    async registerChild(req, res) {
+        try {
+            const { nombre, email, password, fechaNacimiento, avatar } = req.body;
+
+            if (req.user.tipo !== 'padre' && req.user.tipo !== 'admin') {
+                return ResponseHelper.forbidden(res, 'Solo padres y admin pueden registrar estudiantes');
+            }
+
+            // Validar que el email no esté en uso
+            const existingUser = await userRepository.findByEmail(email);
+            if (existingUser) {
+                return ResponseHelper.error(res, 'El correo electrónico ya está registrado', 400);
+            }
+
+            // Crear el usuario estudiante
+            const student = await userRepository.create(
+                nombre,
+                email,
+                password,
+                'estudiante',
+                fechaNacimiento,
+                avatar || '🐻'
+            );
+
+            // Si es un padre, vincular automáticamente
+            if (req.user.tipo === 'padre') {
+                await relationshipRepository.createRelationship(req.user.id, student.id);
+            }
+
+            return ResponseHelper.success(res, student, 'Estudiante registrado y vinculado exitosamente', 201);
+
+        } catch (error) {
+            console.error('Error en registerChild:', error);
+            return ResponseHelper.error(res, 'Error al registrar estudiante');
         }
     }
 }
