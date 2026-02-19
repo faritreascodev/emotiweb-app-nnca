@@ -61,7 +61,9 @@ router.get('/users', authenticateToken, requireRole('admin'), adminController.ge
  *         description: Estado actualizado
  */
 router.put('/users/:userId/toggle', authenticateToken, requireRole('admin'), adminController.toggleUserStatus);
+router.get('/users/:userId', authenticateToken, requireRole('admin'), adminController.getUserById);
 router.post('/users', authenticateToken, requireRole('admin'), adminController.createUser);
+router.put('/users/:userId', authenticateToken, requireRole('admin'), adminController.updateUser);
 router.delete('/users/:userId', authenticateToken, requireRole('admin'), adminController.deleteUser);
 
 
@@ -79,7 +81,10 @@ router.delete('/users/:userId', authenticateToken, requireRole('admin'), adminCo
  */
 router.get('/health', authenticateToken, requireRole('admin'), adminController.getSystemHealth);
 router.get('/games', authenticateToken, requireRole('admin'), adminController.getAllGames);
+router.get('/games/:id', authenticateToken, requireRole('admin'), adminController.getGameById);
+router.post('/games', authenticateToken, requireRole('admin'), adminController.createGame);
 router.put('/games/:id', authenticateToken, requireRole('admin'), adminController.updateGame);
+router.delete('/games/:id', authenticateToken, requireRole('admin'), adminController.deleteGame);
 
 
 module.exports = router;

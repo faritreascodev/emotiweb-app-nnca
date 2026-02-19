@@ -44,11 +44,11 @@ class AdminController {
                     COUNT(rj.id) as total_respuestas,
                     SUM(CASE WHEN rj.es_correcta = true THEN 1 ELSE 0 END) as correctas,
                     SUM(CASE WHEN rj.es_correcta = false THEN 1 ELSE 0 END) as incorrectas,
-                    (SUM(CASE WHEN rj.es_correcta = true THEN 1 ELSE 0 END) / COUNT(rj.id) * 100) as precision
+                    (SUM(CASE WHEN rj.es_correcta = true THEN 1 ELSE 0 END) / NULLIF(COUNT(rj.id), 0) * 100) as precision_rate
                 FROM emociones e
                 LEFT JOIN respuestas_juego rj ON e.id = rj.emocion_correcta
                 GROUP BY e.id, e.nombre_es, e.emoji
-                ORDER BY precision ASC
+                ORDER BY precision_rate ASC
             `);
 
             // Actividad reciente
@@ -105,6 +105,42 @@ class AdminController {
         }
     }
 
+    async getUserById(req, res) {
+        try {
+            if (req.user.tipo !== 'admin') return ResponseHelper.forbidden(res);
+            const { userId } = req.params;
+            const user = await userRepository.findById(userId);
+            if (!user) return ResponseHelper.notFound(res, 'Usuario');
+
+            const data = user.toJSON();
+            if (user.tipo === 'estudiante') {
+                const stats = await progressRepository.getStats(user.id);
+                data.estadisticas = stats;
+            }
+
+            return ResponseHelper.success(res, data);
+        } catch (error) {
+            return ResponseHelper.error(res, 'Error al obtener usuario');
+        }
+    }
+
+    async updateUser(req, res) {
+        try {
+            if (req.user.tipo !== 'admin') return ResponseHelper.forbidden(res);
+            const { userId } = req.params;
+            const { nombre, email, tipo, fechaNacimiento, avatar, activo } = req.body;
+
+            await query(
+                'UPDATE usuarios SET nombre = ?, email = ?, tipo = ?, fecha_nacimiento = ?, avatar = ?, activo = ? WHERE id = ?',
+                [nombre, email, tipo, fechaNacimiento, avatar, activo, userId]
+            );
+
+            return ResponseHelper.success(res, null, 'Usuario actualizado');
+        } catch (error) {
+            return ResponseHelper.error(res, 'Error al actualizar usuario');
+        }
+    }
+
     async createUser(req, res) {
         try {
             if (req.user.tipo !== 'admin') return ResponseHelper.forbidden(res);
@@ -148,6 +184,42 @@ class AdminController {
             return ResponseHelper.success(res, null, 'Juego actualizado');
         } catch (error) {
             return ResponseHelper.error(res, 'Error al actualizar juego');
+        }
+    }
+
+    async getGameById(req, res) {
+        try {
+            const { id } = req.params;
+            const game = await query('SELECT * FROM juegos WHERE id = ?', [id]);
+            if (game.rows.length === 0) return ResponseHelper.notFound(res, 'Juego');
+            return ResponseHelper.success(res, game.rows[0]);
+        } catch (error) {
+            return ResponseHelper.error(res, 'Error al obtener juego');
+        }
+    }
+
+    async createGame(req, res) {
+        try {
+            if (req.user.tipo !== 'admin') return ResponseHelper.forbidden(res);
+            const { id, titulo, descripcion, icono, color, tipo, rondas_por_partida, orden } = req.body;
+            await query(
+                'INSERT INTO juegos (id, titulo, descripcion, icono, color, tipo, rondas_por_partida, orden) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                [id, titulo, descripcion, icono, color, tipo, rondas_por_partida || 5, orden || 0]
+            );
+            return ResponseHelper.success(res, { id }, 'Juego creado', 201);
+        } catch (error) {
+            return ResponseHelper.error(res, 'Error al crear juego');
+        }
+    }
+
+    async deleteGame(req, res) {
+        try {
+            if (req.user.tipo !== 'admin') return ResponseHelper.forbidden(res);
+            const { id } = req.params;
+            await query('DELETE FROM juegos WHERE id = ?', [id]);
+            return ResponseHelper.success(res, null, 'Juego eliminado');
+        } catch (error) {
+            return ResponseHelper.error(res, 'Error al eliminar juego');
         }
     }
 

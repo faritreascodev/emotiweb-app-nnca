@@ -279,6 +279,27 @@ INSERT IGNORE INTO situaciones (juego_id, texto, imagen, emocion_correcta, nivel
 ('story', 'Un lobo gruñón intentó robarse los globos de la fiesta.', '🐺', 'anger', 1),
 ('story', 'Al final, todos bailaron bajo la lluvia y se divirtieron muchísimo.', '💃', 'joy', 1),
 
+-- Story situations: El Tesoro Escondido
+('story', 'El pirata Barbanegra encontró un mapa antiguo en una botella.', '📜', 'surprise', 1),
+('story', 'Cuando llegó a la isla, vio que alguien ya había cavado y el cofre no estaba.', '🏝️', 'sadness', 1),
+('story', 'De pronto, vio a un mono travieso saltando con su collar de oro.', '🐒', 'anger', 1),
+('story', 'El mono le devolvió el tesoro y le regaló un plátano mágico.', '🍌', 'joy', 1),
+('story', 'El plátano brillaba tanto que iluminaba toda la cueva oscura.', '🔦', 'fear', 1),
+
+-- Story situations: El Robot que no sabía reír
+('story', 'Robby era un robot de hojalata que vivía en una ciudad de metal frío.', '🤖', 'sadness', 1),
+('story', 'Un día, encontró una pequeña flor de colores creciendo entre las máquinas.', '🌸', 'surprise', 1),
+('story', 'Un camión de basura casi pisa la flor y Robby se puso muy firme para protegerla.', '🚛', 'anger', 1),
+('story', 'Robby llevó la flor a su casa y le dio agua cada mañana.', '💧', 'joy', 1),
+('story', 'Al final, Robby aprendió que los robots también pueden tener un corazón alegre.', '❤️', 'joy', 1),
+
+-- Más situaciones para 'situation'
+('situation', 'Te dan una inyección en el médico', '💉', 'fear', 1),
+('situation', 'Encuentras un trébol de cuatro hojas', '🍀', 'joy', 1),
+('situation', 'Se te perdió el dinero de la merienda', '💸', 'sadness', 2),
+('situation', 'Alguien te empuja en la fila del recreo', '🏃', 'anger', 1),
+('situation', 'Aparece un dinosaurio gigante en tu jardín', '🦖', 'surprise', 2),
+
 -- More Situations for 'situation'
 ('situation', 'Encuentras una moneda de oro en el parque', '🪙', 'joy', 2),
 ('situation', 'Te das cuenta de que no hiciste la tarea para mañana', '📝', 'fear', 2),

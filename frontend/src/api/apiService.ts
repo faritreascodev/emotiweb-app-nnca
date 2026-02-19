@@ -171,6 +171,19 @@ class ApiService {
         return response.data;
     }
 
+    async adminGetUser(userId: number) {
+        const response = await this.request(`/admin/users/${userId}`);
+        return response.data;
+    }
+
+    async adminUpdateUser(userId: number, data: any) {
+        const response = await this.request(`/admin/users/${userId}`, {
+            method: 'PUT',
+            body: JSON.stringify(data),
+        });
+        return response.data;
+    }
+
     async getSystemHealth() {
         const response = await this.request('/admin/health');
         return response.data;
@@ -200,6 +213,26 @@ class ApiService {
         const response = await this.request(`/admin/games/${gameId}`, {
             method: 'PUT',
             body: JSON.stringify(data),
+        });
+        return response.data;
+    }
+
+    async adminGetGame(gameId: string) {
+        const response = await this.request(`/admin/games/${gameId}`);
+        return response.data;
+    }
+
+    async adminCreateGame(data: any) {
+        const response = await this.request('/admin/games', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+        return response.data;
+    }
+
+    async adminDeleteGame(gameId: string) {
+        const response = await this.request(`/admin/games/${gameId}`, {
+            method: 'DELETE',
         });
         return response.data;
     }
