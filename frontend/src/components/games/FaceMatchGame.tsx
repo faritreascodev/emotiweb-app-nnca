@@ -8,7 +8,7 @@ import { CheckCircle, XCircle, Star, Loader2, Volume2 } from 'lucide-react';
 import { apiService } from '../../api/apiService';
 
 export function FaceMatchGame() {
-    const { finishSession } = useGame();
+    const { finishSession, sessionId } = useGame();
     const { speak, playEffect } = useSound();
     const navigate = useNavigate();
 
@@ -55,12 +55,27 @@ export function FaceMatchGame() {
         loadGameData();
     }, [loadGameData]);
 
-    const handleAnswer = (selectedId: string) => {
+    const handleAnswer = async (selectedId: string) => {
         if (gameState !== 'playing') return;
 
         setSelectedId(selectedId);
         const currentRound = rounds[currentIndex];
         const correct = selectedId === currentRound.target.id;
+
+        // Registrar respuesta en el backend (Audit/Progress tracking)
+        try {
+            if (sessionId) {
+                await apiService.recordAnswer(sessionId, {
+                    situacionId: 0, // En face-match no hay situacionID específica
+                    emocionSeleccionada: selectedId,
+                    emocionCorrecta: currentRound.target.id,
+                    numeroRonda: currentIndex + 1,
+                    tiempoRespuesta: 0
+                });
+            }
+        } catch (e) {
+            console.error("Error recording answer", e);
+        }
 
         setIsCorrect(correct);
         setGameState('feedback');

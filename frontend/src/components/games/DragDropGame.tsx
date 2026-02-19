@@ -15,7 +15,7 @@ interface EmotionItem {
 }
 
 export function DragDropGame() {
-    const { finishSession } = useGame();
+    const { finishSession, sessionId } = useGame();
     const { speak, playEffect } = useSound();
     const navigate = useNavigate();
 
@@ -54,10 +54,27 @@ export function DragDropGame() {
         playEffect('click');
     };
 
-    const handleSelectTarget = (id: string) => {
+    const handleSelectTarget = async (id: string) => {
         if (!selectedEmoji) return;
 
-        if (selectedEmoji === id) {
+        const isMatch = selectedEmoji === id;
+
+        // Registrar respuesta en el backend
+        try {
+            if (sessionId) {
+                await apiService.recordAnswer(sessionId, {
+                    situacionId: 0,
+                    emocionSeleccionada: selectedEmoji,
+                    emocionCorrecta: id,
+                    numeroRonda: Object.keys(matches).length + 1,
+                    tiempoRespuesta: 0
+                });
+            }
+        } catch (e) {
+            console.error("Error recording answer", e);
+        }
+
+        if (isMatch) {
             playEffect('correct');
             setMatches(prev => ({ ...prev, [id]: true }));
             setSelectedEmoji(null);

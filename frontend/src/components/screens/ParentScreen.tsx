@@ -164,6 +164,16 @@ export function ParentScreen() {
                                     value={newChild.password}
                                     onChange={e => setNewChild({ ...newChild, password: e.target.value })}
                                 />
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black text-indigo-300 uppercase ml-4">Fecha de Nacimiento</label>
+                                    <input
+                                        type="date"
+                                        required
+                                        className="w-full p-5 bg-indigo-50 rounded-2xl border-none font-bold text-indigo-950 focus:ring-4 focus:ring-indigo-200"
+                                        value={newChild.fechaNacimiento}
+                                        onChange={e => setNewChild({ ...newChild, fechaNacimiento: e.target.value })}
+                                    />
+                                </div>
                                 <div className="flex gap-4">
                                     <button
                                         type="button"
@@ -261,7 +271,7 @@ export function ParentScreen() {
                                                 </h2>
                                                 <div className="flex flex-wrap gap-4">
                                                     <span className="bg-white/20 px-4 py-2 rounded-2xl text-sm font-black flex items-center gap-2 uppercase">
-                                                        <Calendar size={16} /> {selectedStudent.estudiante.fecha_nacimiento ? `${new Date().getFullYear() - new Date(selectedStudent.estudiante.fecha_nacimiento).getFullYear()}` : '?'} Años
+                                                        <Calendar size={16} /> {selectedStudent.estudiante.edad ?? '?'} Años
                                                     </span>
                                                     <span className="bg-white/20 px-4 py-2 rounded-2xl text-sm font-black flex items-center gap-2 uppercase">
                                                         <Mail size={16} /> {selectedStudent.estudiante.email}

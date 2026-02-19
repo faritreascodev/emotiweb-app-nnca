@@ -61,6 +61,9 @@ router.get('/users', authenticateToken, requireRole('admin'), adminController.ge
  *         description: Estado actualizado
  */
 router.put('/users/:userId/toggle', authenticateToken, requireRole('admin'), adminController.toggleUserStatus);
+router.post('/users', authenticateToken, requireRole('admin'), adminController.createUser);
+router.delete('/users/:userId', authenticateToken, requireRole('admin'), adminController.deleteUser);
+
 
 /**
  * @swagger
@@ -75,5 +78,8 @@ router.put('/users/:userId/toggle', authenticateToken, requireRole('admin'), adm
  *         description: Estado del sistema
  */
 router.get('/health', authenticateToken, requireRole('admin'), adminController.getSystemHealth);
+router.get('/games', authenticateToken, requireRole('admin'), adminController.getAllGames);
+router.put('/games/:id', authenticateToken, requireRole('admin'), adminController.updateGame);
+
 
 module.exports = router;

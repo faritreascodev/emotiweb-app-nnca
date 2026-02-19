@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useGame } from '../../context/GameContext';
 import { apiService } from '../../api/apiService';
 import { Button } from '../common/Button';
-import { Users, Settings, BarChart3, ArrowLeft, Trash2, Edit, Plus, Search, UserPlus, Star } from 'lucide-react';
+import { Users, Settings, BarChart3, ArrowLeft, Trash2, Edit, Search, UserPlus, Star, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -11,6 +11,8 @@ export function AdminDashboard() {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<'users' | 'games' | 'stats'>('users');
     const [usersList, setUsersList] = useState<any[]>([]);
+    const [gamesList, setGamesList] = useState<any[]>([]);
+    const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -19,8 +21,10 @@ export function AdminDashboard() {
             navigate('/');
             return;
         }
-        fetchUsers();
-    }, [user, navigate]);
+        if (activeTab === 'users') fetchUsers();
+        if (activeTab === 'games') fetchGames();
+        if (activeTab === 'stats') fetchStats();
+    }, [user, navigate, activeTab]);
 
     const fetchUsers = async () => {
         try {
@@ -34,12 +38,56 @@ export function AdminDashboard() {
         }
     };
 
-    if (loading && usersList.length === 0) return (
+    const fetchGames = async () => {
+        try {
+            setLoading(true);
+            const data = await apiService.adminGetGames();
+            setGamesList(data);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchStats = async () => {
+        try {
+            setLoading(true);
+            const data = await apiService.getAdminDashboard();
+            setStats(data);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDeleteUser = async (id: number) => {
+        if (confirm("¿Estás seguro de eliminar este usuario?")) {
+            try {
+                await apiService.adminDeleteUser(id);
+                fetchUsers();
+            } catch (e) {
+                alert("Error al eliminar");
+            }
+        }
+    };
+
+    const handleToggleStatus = async (id: number, current: boolean) => {
+        try {
+            await apiService.toggleUserStatus(id, !current);
+            fetchUsers();
+        } catch (e) {
+            alert("Error al actualizar");
+        }
+    };
+
+    if (loading && usersList.length === 0 && !stats && gamesList.length === 0) return (
         <div className="min-h-[60vh] flex flex-col items-center justify-center text-white">
             <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}>
                 <Settings size={64} className="text-yellow-400" />
             </motion.div>
-            <p className="mt-4 text-xl font-bold">Cargando Sistema...</p>
+            <p className="mt-4 text-xl font-bold">Sincronizando Sistema...</p>
         </div>
     );
 
@@ -118,8 +166,19 @@ export function AdminDashboard() {
                                                 </td>
                                                 <td className="p-6">
                                                     <div className="flex justify-center gap-3">
-                                                        <button className="p-3 bg-white hover:bg-indigo-50 text-indigo-600 rounded-2xl border border-indigo-100 shadow-sm transition-all"><Edit size={20} /></button>
-                                                        <button className="p-3 bg-white hover:bg-red-50 text-red-500 rounded-2xl border border-red-50 shadow-sm transition-all"><Trash2 size={20} /></button>
+                                                        <button
+                                                            onClick={() => handleToggleStatus(targetUser.id, targetUser.activo)}
+                                                            className={`p-3 rounded-2xl border shadow-sm transition-all ${targetUser.activo ? 'bg-green-50 text-green-600 border-green-100' : 'bg-gray-100 text-gray-400 border-gray-200'}`}
+                                                            title={targetUser.activo ? "Desactivar" : "Activar"}
+                                                        >
+                                                            <CheckCircle size={20} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteUser(targetUser.id)}
+                                                            className="p-3 bg-white hover:bg-red-50 text-red-500 rounded-2xl border border-red-50 shadow-sm transition-all"
+                                                        >
+                                                            <Trash2 size={20} />
+                                                        </button>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -133,17 +192,29 @@ export function AdminDashboard() {
 
                 {activeTab === 'games' && (
                     <motion.div key="games" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}>
-                        <div className="bg-white/95 rounded-[50px] p-12 shadow-2xl text-center border-b-[16px] border-yellow-400">
-                            <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 20, ease: "linear" }}>
-                                <Settings size={120} className="mx-auto text-yellow-400 mb-8" />
-                            </motion.div>
-                            <h2 className="text-5xl font-black text-indigo-950 mb-4 italic">FORJA DE JUEGOS</h2>
-                            <p className="text-2xl text-indigo-600 font-bold mb-10 max-w-2xl mx-auto">
-                                Aquí podrás crear nuevas dinámicas, situaciones y configurar las reglas de cada mundo emocional.
-                            </p>
-                            <Button size="lg" className="h-16 px-12 rounded-[30px] bg-indigo-600 text-xl font-black shadow-2xl border-b-6 border-indigo-800">
-                                <Plus className="mr-3" /> AÑADIR NUEVA SITUACIÓN
-                            </Button>
+                        <div className="bg-white/95 rounded-[50px] p-10 shadow-2xl border-b-[16px] border-yellow-400">
+                            <h2 className="text-3xl font-black text-indigo-950 mb-10 italic flex items-center gap-4 uppercase">
+                                <Settings className="text-yellow-500" /> Mundos Emocionales
+                            </h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                {gamesList.map((game) => (
+                                    <div key={game.id} className="p-8 bg-indigo-50/50 rounded-[40px] border-2 border-indigo-100 flex items-center justify-between">
+                                        <div className="flex items-center gap-6">
+                                            <div className="text-6xl w-20 h-20 bg-white rounded-3xl flex items-center justify-center shadow-lg">{game.icono}</div>
+                                            <div>
+                                                <div className="font-black text-2xl text-indigo-950 uppercase">{game.titulo}</div>
+                                                <div className="text-sm font-bold text-indigo-400 max-w-xs">{game.descripcion}</div>
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-col gap-2">
+                                            <span className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase text-center ${game.activo ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                                {game.activo ? 'Activo' : 'Inactivo'}
+                                            </span>
+                                            <button className="p-3 bg-white text-indigo-600 rounded-xl shadow-sm border border-indigo-100"><Edit size={18} /></button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </motion.div>
                 )}
@@ -151,14 +222,48 @@ export function AdminDashboard() {
                 {activeTab === 'stats' && (
                     <motion.div key="stats" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }}>
                         <div className="bg-indigo-900/60 rounded-[50px] p-12 shadow-2xl backdrop-blur-xl border border-white/10 border-b-[16px] border-indigo-950">
-                            <h2 className="text-4xl font-black text-white mb-10 italic flex items-center gap-4">
-                                <BarChart3 className="text-yellow-400" size={40} /> ESTADO DEL SISTEMA
+                            <h2 className="text-4xl font-black text-white mb-10 italic flex items-center gap-4 uppercase">
+                                <BarChart3 className="text-yellow-400" size={40} /> Corazón del Sistema
                             </h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                                <SummaryBadge label="Total Usuarios" value={usersList.length} color="text-yellow-400" />
-                                <SummaryBadge label="Semanas Activo" value="1.2" color="text-green-400" />
-                                <SummaryBadge label="Niveles Creados" value="14" color="text-sky-400" />
-                                <SummaryBadge label="Reportes" value="23" color="text-pink-400" />
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+                                <SummaryBadge label="Total Usuarios" value={stats?.estadisticas ? (stats?.estadisticas?.total_estudiantes + stats?.estadisticas?.total_padres) : 0} color="text-yellow-400" />
+                                <SummaryBadge label="Sesiones Completadas" value={stats?.estadisticas?.total_sesiones_completadas || 0} color="text-green-400" />
+                                <SummaryBadge label="Estrellas Repartidas" value={stats?.estadisticas?.total_estrellas_sistema || 0} color="text-sky-400" />
+                                <SummaryBadge label="Logros Otorgados" value={stats?.estadisticas?.total_logros_obtenidos || 0} color="text-pink-400" />
+                            </div>
+
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                                <div className="bg-white/5 p-8 rounded-[40px] border border-white/5">
+                                    <h3 className="text-white font-black text-xl mb-6 uppercase italic">Juegos Populares</h3>
+                                    <div className="space-y-4">
+                                        {stats?.juegos_populares?.map((j: any) => (
+                                            <div key={j.titulo} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl">
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-2xl">{j.icono}</span>
+                                                    <span className="text-indigo-100 font-bold">{j.titulo}</span>
+                                                </div>
+                                                <div className="text-yellow-400 font-black">{j.veces_jugado} Jugadas</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="bg-white/5 p-8 rounded-[40px] border border-white/5">
+                                    <h3 className="text-white font-black text-xl mb-6 uppercase italic">Dificultad de Emociones</h3>
+                                    <div className="space-y-4">
+                                        {stats?.emociones_dificultad?.map((e: any) => (
+                                            <div key={e.nombre_es} className="flex flex-col gap-2">
+                                                <div className="flex justify-between items-center text-sm font-bold text-indigo-300">
+                                                    <span>{e.emoji} {e.nombre_es}</span>
+                                                    <span>{Math.round(e.precision || 0)}% Precisión</span>
+                                                </div>
+                                                <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                                                    <div className="h-full bg-yellow-400" style={{ width: `${e.precision || 0}%` }} />
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </motion.div>

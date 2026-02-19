@@ -23,7 +23,7 @@ const EMOTIONS = {
 };
 
 export function SituationGame() {
-    const { finishSession } = useGame();
+    const { finishSession, sessionId } = useGame();
     const { speak, playEffect } = useSound();
     const navigate = useNavigate();
 
@@ -54,12 +54,27 @@ export function SituationGame() {
         loadGame();
     }, [loadGame]);
 
-    const handleAnswer = (emotionId: string) => {
+    const handleAnswer = async (emotionId: string) => {
         if (gameState !== 'playing') return;
 
         setSelectedId(emotionId);
         const currentQ = questions[currentIndex];
         const correct = emotionId === currentQ.emocion_correcta;
+
+        // Registrar respuesta en el backend
+        try {
+            if (sessionId) {
+                await apiService.recordAnswer(sessionId, {
+                    situacionId: currentQ.id,
+                    emocionSeleccionada: emotionId,
+                    emocionCorrecta: currentQ.emocion_correcta,
+                    numeroRonda: currentIndex + 1,
+                    tiempoRespuesta: 0
+                });
+            }
+        } catch (e) {
+            console.error("Error recording answer", e);
+        }
 
         setIsCorrect(correct);
         setGameState('feedback');

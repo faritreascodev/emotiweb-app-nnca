@@ -175,6 +175,34 @@ class ApiService {
         const response = await this.request('/admin/health');
         return response.data;
     }
+
+    async adminCreateUser(data: any) {
+        const response = await this.request('/admin/users', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+        return response.data;
+    }
+
+    async adminDeleteUser(userId: number) {
+        const response = await this.request(`/admin/users/${userId}`, {
+            method: 'DELETE',
+        });
+        return response.data;
+    }
+
+    async adminGetGames() {
+        const response = await this.request('/admin/games');
+        return response.data;
+    }
+
+    async adminUpdateGame(gameId: string, data: any) {
+        const response = await this.request(`/admin/games/${gameId}`, {
+            method: 'PUT',
+            body: JSON.stringify(data),
+        });
+        return response.data;
+    }
 }
 
 export const apiService = new ApiService();

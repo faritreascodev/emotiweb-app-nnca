@@ -87,25 +87,67 @@ class AdminController {
             }
 
             const users = await userRepository.findAll();
-
             const usersWithStats = await Promise.all(
                 users.map(async (user) => {
+                    const data = user.toJSON();
                     if (user.tipo === 'estudiante') {
                         const stats = await progressRepository.getStats(user.id);
-                        return {
-                            ...user.toJSON(),
-                            estadisticas: stats
-                        };
+                        return { ...data, estadisticas: stats };
                     }
-                    return user.toJSON();
+                    return data;
                 })
             );
 
             return ResponseHelper.success(res, usersWithStats);
-
         } catch (error) {
             console.error('Error en getAllUsers:', error);
             return ResponseHelper.error(res, 'Error al obtener usuarios');
+        }
+    }
+
+    async createUser(req, res) {
+        try {
+            if (req.user.tipo !== 'admin') return ResponseHelper.forbidden(res);
+            const { nombre, email, password, tipo, fechaNacimiento, avatar } = req.body;
+            const user = await userRepository.create(nombre, email, password, tipo, fechaNacimiento, avatar);
+            return ResponseHelper.success(res, user.toJSON(), 'Usuario creado', 201);
+        } catch (error) {
+            return ResponseHelper.error(res, 'Error al crear usuario');
+        }
+    }
+
+    async deleteUser(req, res) {
+        try {
+            if (req.user.tipo !== 'admin') return ResponseHelper.forbidden(res);
+            const { userId } = req.params;
+            await query('DELETE FROM usuarios WHERE id = ?', [userId]);
+            return ResponseHelper.success(res, null, 'Usuario eliminado');
+        } catch (error) {
+            return ResponseHelper.error(res, 'Error al eliminar usuario');
+        }
+    }
+
+    async getAllGames(req, res) {
+        try {
+            const games = await query('SELECT * FROM juegos ORDER BY orden');
+            return ResponseHelper.success(res, games.rows);
+        } catch (error) {
+            return ResponseHelper.error(res, 'Error al obtener juegos');
+        }
+    }
+
+    async updateGame(req, res) {
+        try {
+            if (req.user.tipo !== 'admin') return ResponseHelper.forbidden(res);
+            const { id } = req.params;
+            const { titulo, descripcion, icono, color, activo } = req.body;
+            await query(
+                'UPDATE juegos SET titulo = ?, descripcion = ?, icono = ?, color = ?, activo = ? WHERE id = ?',
+                [titulo, descripcion, icono, color, activo, id]
+            );
+            return ResponseHelper.success(res, null, 'Juego actualizado');
+        } catch (error) {
+            return ResponseHelper.error(res, 'Error al actualizar juego');
         }
     }
 
@@ -140,7 +182,8 @@ class AdminController {
                 status: 'healthy',
                 database: dbStatus.rows[0].result === 2 ? 'connected' : 'error',
                 timestamp: new Date().toISOString(),
-                uptime: process.uptime()
+                uptime: process.uptime(),
+                memory: process.memoryUsage()
             };
 
             return ResponseHelper.success(res, health);
