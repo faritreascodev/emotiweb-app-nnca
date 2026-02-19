@@ -74,6 +74,7 @@ export function LoginScreen() {
                             onChange={(e) => setEmail(e.target.value)}
                             className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-white/50 focus:bg-white/20 transition-all font-sans"
                             placeholder="nombre@ejemplo.com"
+                            autoComplete="email"
                             required
                         />
                     </div>
@@ -86,6 +87,7 @@ export function LoginScreen() {
                             onChange={(e) => setPassword(e.target.value)}
                             className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-white/50 focus:bg-white/20 transition-all font-sans"
                             placeholder="••••••••"
+                            autoComplete="current-password"
                             required
                         />
                     </div>

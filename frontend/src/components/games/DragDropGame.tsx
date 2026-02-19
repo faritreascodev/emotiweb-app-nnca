@@ -63,7 +63,7 @@ export function DragDropGame() {
         try {
             if (sessionId) {
                 await apiService.recordAnswer(sessionId, {
-                    situacionId: 0,
+                    situacionId: null,
                     emocionSeleccionada: selectedEmoji,
                     emocionCorrecta: id,
                     numeroRonda: Object.keys(matches).length + 1,

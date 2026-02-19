@@ -25,15 +25,24 @@ const query = async (text, params = []) => {
     }
 };
 
-const testConnection = async () => {
-    try {
-        const [result] = await pool.execute('SELECT 1 + 1 AS result');
-        logger.info('✅ MySQL conectado:', result[0].result === 2);
-        return true;
-    } catch (error) {
-        logger.error('❌ Error MySQL:', error.message);
-        return false;
+const testConnection = async (retries = 10, delay = 3000) => {
+    for (let i = 0; i < retries; i++) {
+        try {
+            logger.info(`[Intento ${i + 1}/${retries}] Conectando a MySQL en ${DB_HOST}:${DB_PORT}...`);
+            const [result] = await pool.execute('SELECT 1 + 1 AS result');
+            if (result[0].result === 2) {
+                logger.info('✅ MySQL conectado y respondiendo correctamente');
+                return true;
+            }
+        } catch (error) {
+            logger.error(`❌ Error de conexión (Intento ${i + 1}): ${error.message}`);
+            if (i < retries - 1) {
+                logger.info(`Reintentando en ${delay / 1000}s...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+        }
     }
+    return false;
 };
 
 module.exports = { pool, query, testConnection };

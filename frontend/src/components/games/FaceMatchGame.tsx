@@ -66,7 +66,7 @@ export function FaceMatchGame() {
         try {
             if (sessionId) {
                 await apiService.recordAnswer(sessionId, {
-                    situacionId: 0, // En face-match no hay situacionID específica
+                    situacionId: null, // En face-match no hay situacionID específica
                     emocionSeleccionada: selectedId,
                     emocionCorrecta: currentRound.target.id,
                     numeroRonda: currentIndex + 1,

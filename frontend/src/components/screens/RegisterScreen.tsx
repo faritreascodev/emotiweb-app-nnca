@@ -106,6 +106,7 @@ export function RegisterScreen() {
                                             onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
                                             className="w-full px-5 py-4 rounded-2xl bg-white/5 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:bg-white/10 transition-all"
                                             placeholder="¿Cómo te llamas?"
+                                            autoComplete="name"
                                         />
                                     </div>
                                     <div className="space-y-2">
@@ -119,6 +120,7 @@ export function RegisterScreen() {
                                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                             className="w-full px-5 py-4 rounded-2xl bg-white/5 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:bg-white/10 transition-all"
                                             placeholder="nombre@ejemplo.com"
+                                            autoComplete="email"
                                         />
                                     </div>
                                     <div className="space-y-2">
@@ -132,6 +134,7 @@ export function RegisterScreen() {
                                             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                             className="w-full px-5 py-4 rounded-2xl bg-white/5 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:bg-white/10 transition-all"
                                             placeholder="Mínimo 6 caracteres"
+                                            autoComplete="new-password"
                                         />
                                     </div>
                                     <div className="space-y-2">

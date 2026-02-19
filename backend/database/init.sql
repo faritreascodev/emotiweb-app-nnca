@@ -108,7 +108,7 @@ CREATE TABLE IF NOT EXISTS relaciones_padre_hijo (
 CREATE TABLE IF NOT EXISTS respuestas_juego (
     id INT AUTO_INCREMENT PRIMARY KEY,
     sesion_id INTEGER NOT NULL,
-    situacion_id INTEGER NOT NULL,
+    situacion_id INTEGER NULL,
     emocion_seleccionada VARCHAR(20) NOT NULL,
     emocion_correcta VARCHAR(20) NOT NULL,
     es_correcta BOOLEAN NOT NULL,

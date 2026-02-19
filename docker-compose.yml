@@ -5,7 +5,7 @@ services:
     restart: unless-stopped
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     environment:
-      MYSQL_DATABASE: ${DB_NAME:-emotiweb_final_db}
+      MYSQL_DATABASE: ${DB_NAME:-emotiweb_db}
       MYSQL_USER: ${DB_USER:-emotiweb_user}
       MYSQL_PASSWORD: ${DB_PASSWORD:-emotiweb_secure_pass_2026}
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root_pass_2026}
@@ -13,10 +13,10 @@ services:
       - mysql_data:/var/lib/mysql
       - ./backend/database/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-root_pass_2026}"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
     networks:
       - emotiweb-network
 
@@ -30,16 +30,21 @@ services:
         condition: service_healthy
     environment:
       PORT: 3001
-      NODE_ENV: ${NODE_ENV:-production}
-      DB_HOST: db
+      NODE_ENV: production
+      DB_HOST: emotiweb-mysql
       DB_PORT: 3306
-      DB_NAME: ${DB_NAME:-emotiweb_final_db}
+      DB_NAME: ${DB_NAME:-emotiweb_db}
       DB_USER: ${DB_USER:-emotiweb_user}
       DB_PASSWORD: ${DB_PASSWORD:-emotiweb_secure_pass_2026}
       JWT_SECRET: ${JWT_SECRET:-emotiweb.jwt.clave.nnca}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-emotiweb.refresh.clave.nnca}
       CORS_ORIGIN: ${FRONTEND_URL:-https://emotiweb.mltprdj.com}
       FRONTEND_URL: ${FRONTEND_URL:-https://emotiweb.mltprdj.com}
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
     networks:
       - emotiweb-network
 
@@ -48,6 +53,8 @@ services:
       context: ./frontend
     container_name: emotiweb-frontend
     restart: unless-stopped
+    ports:
+      - "80:80"
     depends_on:
       - backend
     environment:

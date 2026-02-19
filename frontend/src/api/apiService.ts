@@ -135,7 +135,7 @@ class ApiService {
     }
 
     async recordAnswer(sessionId: number, answerData: {
-        situacionId: number;
+        situacionId?: number | null;
         emocionSeleccionada: string;
         emocionCorrecta: string;
         tiempoRespuesta?: number;
