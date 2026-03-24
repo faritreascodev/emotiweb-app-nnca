@@ -3,7 +3,7 @@
 # Script de verificación del sistema EmotiWeb
 # Verifica que todos los servicios estén funcionando correctamente
 
-echo "🐻 EmotiWeb - Script de Verificación del Sistema"
+echo "EmotiWeb - Script de Verificación del Sistema"
 echo "=================================================="
 echo ""
 
