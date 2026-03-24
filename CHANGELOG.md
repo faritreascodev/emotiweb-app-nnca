@@ -1,4 +1,4 @@
-# 📝 CHANGELOG - EmotiWeb
+#  CHANGELOG - EmotiWeb
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
@@ -9,11 +9,11 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [1.0.0] - 2026-02-09
 
-### 🎉 Versión Inicial Completa y Funcional
+###  Versión Inicial Completa y Funcional
 
 Esta es la primera versión completamente funcional del sistema EmotiWeb, con todas las características implementadas y probadas.
 
-### ✨ Agregado
+###  Agregado
 
 #### Base de Datos
 - **Tabla `relaciones_padre_hijo`**: Sistema completo de vinculación padre-hijo
@@ -39,14 +39,14 @@ Esta es la primera versión completamente funcional del sistema EmotiWeb, con to
   - Actualiza contadores de aciertos/errores
 
 - **Seeds de logros**: 8 logros predefinidos
-  - 👣 Primeros Pasos (1 juego)
-  - ⭐ Coleccionista de Estrellas (10 estrellas)
-  - 🎭 Explorador de Emociones (5 emociones)
-  - 🌟 Súper Estrella (50 estrellas)
-  - 🏆 Maestro de Emociones (3 emociones al 70%)
-  - 💯 Juego Perfecto (100% precisión)
-  - 📚 Aprendiz Dedicado (20 juegos)
-  - 👑 Campeón EmotiWeb (100 estrellas)
+  -  Primeros Pasos (1 juego)
+  -  Coleccionista de Estrellas (10 estrellas)
+  -  Explorador de Emociones (5 emociones)
+  -  Súper Estrella (50 estrellas)
+  -  Maestro de Emociones (3 emociones al 70%)
+  -  Juego Perfecto (100% precisión)
+  -  Aprendiz Dedicado (20 juegos)
+  -  Campeón EmotiWeb (100 estrellas)
 
 - **Seed de relación padre-hijo**: Padre Test vinculado con Estudiante Test
 
@@ -172,18 +172,18 @@ Esta es la primera versión completamente funcional del sistema EmotiWeb, con to
   - Verifica triggers
   - Prueba de API
 
-### 🔧 Corregido
+###  Corregido
 
 - **Error en `server.js`**: Mensaje de error mencionaba PostgreSQL en lugar de MySQL
   - Línea 11: Cambiado de "No se pudo conectar a PostgreSQL" a "No se pudo conectar a MySQL"
 
-### 🔄 Cambiado
+###  Cambiado
 
 - **Trigger `tr_actualizar_progreso_al_finalizar_sesion`**: Mejorado
   - Ahora también actualiza `total_respuestas_correctas`
   - Mejor manejo de timestamps
 
-### 📊 Estadísticas de la Versión
+###  Estadísticas de la Versión
 
 #### Código
 - **Archivos nuevos**: 10
@@ -202,7 +202,7 @@ Esta es la primera versión completamente funcional del sistema EmotiWeb, con to
 - **Roles funcionales**: 3/3 (100%)
 - **Cobertura de features**: 100%
 
-### 🎯 Funcionalidades por Rol
+###  Funcionalidades por Rol
 
 #### Estudiante (100%)
 - [x] Login/Logout
@@ -229,41 +229,41 @@ Esta es la primera versión completamente funcional del sistema EmotiWeb, con to
 - [x] Activar/desactivar cuentas
 - [x] Health monitoring
 
-### 🔐 Seguridad
+###  Seguridad
 
-- ✅ Autenticación JWT implementada
-- ✅ Passwords hasheados con Bcrypt (10 rounds)
-- ✅ Validación de inputs con Joi
-- ✅ Rate limiting configurado
-- ✅ CORS configurado
-- ✅ Helmet para headers de seguridad
-- ✅ SQL injection prevenido (prepared statements)
+-  Autenticación JWT implementada
+-  Passwords hasheados con Bcrypt (10 rounds)
+-  Validación de inputs con Joi
+-  Rate limiting configurado
+-  CORS configurado
+-  Helmet para headers de seguridad
+-  SQL injection prevenido (prepared statements)
 
-### 📚 Documentación
+###  Documentación
 
-- ✅ README completo
-- ✅ Swagger actualizado con todos los endpoints
-- ✅ Guías de uso
-- ✅ Scripts de verificación
-- ✅ Comentarios en código
-- ✅ Changelog detallado
+-  README completo
+-  Swagger actualizado con todos los endpoints
+-  Guías de uso
+-  Scripts de verificación
+-  Comentarios en código
+-  Changelog detallado
 
-### 🧪 Testing
+###  Testing
 
-- ✅ Script de verificación automática
-- ✅ Usuarios de prueba configurados
-- ✅ Datos de seed completos
-- ✅ Swagger para testing manual
-- ✅ Consultas SQL de demostración
+-  Script de verificación automática
+-  Usuarios de prueba configurados
+-  Datos de seed completos
+-  Swagger para testing manual
+-  Consultas SQL de demostración
 
-### 🚀 Deployment
+###  Deployment
 
-- ✅ Docker Compose configurado
-- ✅ Multi-stage builds
-- ✅ Health checks implementados
-- ✅ Volúmenes persistentes
-- ✅ Network isolation
-- ✅ Environment variables
+-  Docker Compose configurado
+-  Multi-stage builds
+-  Health checks implementados
+-  Volúmenes persistentes
+-  Network isolation
+-  Environment variables
 
 ---
 
@@ -280,13 +280,13 @@ Esta es la primera versión completamente funcional del sistema EmotiWeb, con to
 - Roles básicos (estudiante, padre, admin)
 
 #### Problemas Identificados
-- ❌ Error en mensaje de base de datos
-- ❌ Sin sistema de relación padre-hijo
-- ❌ Sin tracking detallado de respuestas
-- ❌ Sin sistema de logros
-- ❌ Dashboard admin sin funcionalidad
-- ❌ Progreso emocional no se actualizaba automáticamente
-- ❌ Documentación incompleta
+-  Error en mensaje de base de datos
+-  Sin sistema de relación padre-hijo
+-  Sin tracking detallado de respuestas
+-  Sin sistema de logros
+-  Dashboard admin sin funcionalidad
+-  Progreso emocional no se actualizaba automáticamente
+-  Documentación incompleta
 
 ---
 
